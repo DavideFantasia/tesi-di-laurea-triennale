@@ -1,2 +1,2 @@
 # tesi-di-laurea-triennale
-Progetto di tesi di laurea triennale in informatica all'Università di Pisa
+Si punta allo scrivere un motore di rendering in C++ OpenGL (GLFW3, GLEW) che permetta di visualizzare frattali 2D e 3D in tempo reale, potendoli navigare
