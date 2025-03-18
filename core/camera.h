@@ -51,9 +51,6 @@ public:
     // Processes input received from a mouse scroll-wheel event
     void ProcessMouseScroll(float yOffset);
 
-    //return y from heightmap, given x and z
-    float TerrainHeight(float x, float z);
-
     // Calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
 };
