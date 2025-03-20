@@ -2,11 +2,11 @@
 
 #include "Fractal.h"
 
-class Sierpinski : public Fractal {
+class Koch : public Fractal {
 public:
-    Sierpinski() {
-        shader.create_program("fractals/quad.vert", "fractals/fragment/sierpinski.frag");
-        name = "Sierpinski";
+    Koch() {
+        shader.create_program("fractals/quad.vert", "fractals/fragment/koch.frag");
+        name = "Koch";
         animationStartTime = 0.0f;
     }
 

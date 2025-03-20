@@ -7,6 +7,10 @@
 #include "../fractals/mandelbrot.h"
 #include "../fractals/julia.h"
 #include "../fractals/sierpinski.h"
+#include "../fractals/koch.h"
+#include "../fractals/barnsley.h"
+
+#include "../fractals/mandelbulb.h"
 
 class GUIManager {
 public:

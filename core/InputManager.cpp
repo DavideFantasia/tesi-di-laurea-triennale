@@ -1,15 +1,10 @@
 #include "InputManager.h"
-#include <iostream>
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-
 
 // Definizione del puntatore statico
 InputManager* InputManager::instance = nullptr;
 
 //costruttore
-InputManager::InputManager(GLFWwindow* window) {
+InputManager::InputManager(GLFWwindow* window) : camera(Camera(glm::vec3(0.0f, 0.0f, 3.0f))){
     this->window = window;
 
     // Imposta le callback di GLFW
@@ -74,11 +69,11 @@ void InputManager::update2D() {
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {  // Mouse sinistro premuto per panning
         double deltaX = xpos - cursorX;
         double deltaY = ypos - cursorY;
-
+        float deltaTime = ImGui::GetIO().DeltaTime;
         // Aggiorna la posizione del centro del frattale in base al movimento del mouse
         // `deltaX` e `deltaY` determinano il panning
         // Puoi scegliere una scala per quanto il mouse sposta la visualizzazione
-        float panningVelocity = 0.025f * zoom;
+        float panningVelocity = 0.5f * zoom * deltaTime;
         panningX = deltaX * panningVelocity;
         panningY = deltaY * panningVelocity;
 
@@ -89,6 +84,35 @@ void InputManager::update2D() {
 }
 
 void InputManager::update3D() {
+    float deltaTime = ImGui::GetIO().DeltaTime;
+
+    // Tasti di movimento della telecamera
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(CameraMovement::FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(CameraMovement::BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(CameraMovement::LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(CameraMovement::RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.ProcessKeyboard(CameraMovement::UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        camera.ProcessKeyboard(CameraMovement::DOWN, deltaTime);
+
+    // Calcola la differenza rispetto alla posizione precedente del mouse
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        float xOffset = xpos - instance->cursorX;
+        float yOffset = instance->cursorY - ypos;
+
+        instance->cursorX = xpos;
+        instance->cursorY = ypos;
+
+        instance->camera.ProcessMouseMovement(xOffset, yOffset);
+    }
 }
 
 void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -126,5 +150,6 @@ void InputManager::scrollCallback(GLFWwindow* window, double xoffset, double yof
     if (ImGui::GetIO().WantCaptureMouse) return;
     if (instance) {
         instance->scrollZoom = yoffset;  // Assegna il valore dello scroll alla variabile scrollZoom
+        instance->camera.ProcessMouseScroll(yoffset);
     }
 }

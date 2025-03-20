@@ -1,7 +1,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <glm/glm.hpp>
+#include <glm/glm.hpp> 
 
 #include "../rendering/Shader.h"
 #include "../core/InputManager.h"
@@ -12,6 +12,8 @@
 
 class Fractal {
 public:
+    bool is_3D = false;
+
     virtual ~Fractal() = default;
 
     // Metodo per aggiornare i parametri dei frattali
@@ -27,4 +29,11 @@ public:
     virtual GLuint getShaderProgram() const = 0;
 
     virtual void reset_param() = 0;
+
+    const char* getName() const { return name; }
+    //true se il frattale è di tipo tridimensionale, false altrimenti
+    bool get_3D(){ return is_3D; }
+
+protected:
+    const char* name;
 };

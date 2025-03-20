@@ -4,8 +4,9 @@
 
 class Mandelbrot : public Fractal {
 public:
-    Mandelbrot() {
+    Mandelbrot(){
         shader.create_program("fractals/quad.vert", "fractals/fragment/mandelbrot.frag");
+        name = "Mandelbrot";
     }
 
     void updateParameters(InputManager inputManager) override {

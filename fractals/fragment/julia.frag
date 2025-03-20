@@ -32,8 +32,6 @@ int juliaSet (vec2 c, vec2 constant) {
 
 // Main method of the sahder
 void main(){
-    //const vec2[6] constants = vec2[] (vec2 (-0.7176, -0.3842), vec2 (-0.4, -0.59), vec2 (0.34, -0.05), vec2 (0.355, 0.355), vec2 (-0.54, 0.54), vec2 (0.355534, -0.337292) );
-
     vec2 res = uResolution;
     vec2 center = uCenter;
     float zoom = uZoom;
@@ -49,7 +47,6 @@ void main(){
     uv *= 0.9;
 
     vec2 c = uv;
-    //int recursionCount = juliaSet (c, constants[3]);
     int recursionCount = juliaSet (c, uCostant);
     float f = float(recursionCount) / float(RECURSION_LIMIT);
 

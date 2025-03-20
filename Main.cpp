@@ -66,6 +66,13 @@ int main(void)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         Fractal &selected_fractal = GUIManager::get_selected_fractal();
+
+        //check per vedere se il frattale è tridimensionale
+        
+        GUIManager::is_3d_enabled() ?
+            inputManager.setMode(InputManager::Mode::MODE_3D)
+            : inputManager.setMode(InputManager::Mode::MODE_2D);
+        
         selected_fractal.updateParameters(inputManager);
         //invio delle uniform alla GPU (il relativo program shader viene impostato nella funzione)
         selected_fractal.setUniform();

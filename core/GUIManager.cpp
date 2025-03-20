@@ -11,10 +11,14 @@ void GUIManager::init(GLFWwindow* window) {
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 430");
-    
+
     fractals.push_back(std::make_unique<Mandelbrot>());
     fractals.push_back(std::make_unique<Julia>());
     fractals.push_back(std::make_unique<Sierpinski>());
+    fractals.push_back(std::make_unique<Koch>());
+    fractals.push_back(std::make_unique<Barnsley>());
+
+    fractals.push_back(std::make_unique<MandelBulb>());
 }
 
 void GUIManager::render(float zoom2D) {
@@ -27,17 +31,13 @@ void GUIManager::render(float zoom2D) {
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
     if (ImGui::BeginMenu("Fractal's List")) {
-        if (ImGui::Selectable("Mandelbrot", selected_fractal == 0)) {
-            selected_fractal = 0;
-            fractals[selected_fractal]->reset_param();
-        }
-        if (ImGui::Selectable("Julia's Set", selected_fractal == 1)) { 
-            selected_fractal = 1;
-            fractals[selected_fractal]->reset_param();
-        }
-        if (ImGui::Selectable("Serpinski's Triangle", selected_fractal == 2)) {
-            selected_fractal = 2;
-            fractals[selected_fractal]->reset_param();
+        //si itera sulla lista di frattali disponibili, mostrando il bottone per selezionarlo
+        for (int i = 0; i < fractals.size(); i++) {
+            if (ImGui::Selectable(fractals[i]->getName(), selected_fractal == i)) {
+                selected_fractal = i;
+                fractals[selected_fractal]->reset_param();
+                is_3d = fractals[selected_fractal]->get_3D();
+            }
         }
         ImGui::EndMenu();
     }

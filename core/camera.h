@@ -39,9 +39,6 @@ public:
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
 
-    // switch (set) camera position to the indicated one
-    void SwitchPosition(glm::vec3 newPosition);
-
     // Processes input received from any keyboard-like input system blocking the camera to the terrain map used
     void ProcessKeyboard(CameraMovement direction, float deltaTime);
 

@@ -9,6 +9,7 @@ class Julia : public Fractal {
 public:
     Julia() {
         shader.create_program("fractals/quad.vert", "fractals/fragment/julia.frag");
+        name = "Julia";
         selectedConstantIndex = 3;  // Inizializza l'indice con il valore predefinito
     }
 
@@ -34,6 +35,7 @@ public:
                 if (ImGui::Selectable(labels[i], selectedConstantIndex == i)) {
                     selectedConstantIndex = i;  // Aggiorna l'indice selezionato
                     juliaConstant = juliaConstants[selectedConstantIndex];  // Aggiorna il valore della costante
+                    reset_param();
                 }
             }
             ImGui::EndMenu();
@@ -46,12 +48,12 @@ public:
 
     void reset_param() override {
         zoom = 1.0f;
-        center = glm::vec2(0.0f, 0.0f);
+        center = juliaConstant;
     }
 
 private:
     Shader shader;
-    glm::vec2 center = glm::vec2(0.0f, 0.0f);
+    glm::vec2 center = glm::vec2(0.5f, 0.5f);
     glm::vec2 juliaConstant = glm::vec2(-0.7f, 0.27015f);
     float zoom = 1.0f;
 
