@@ -1,9 +1,17 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
+#include <iostream>
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
+#include "camera.h"
 
 class InputManager {
 public:
+    Camera camera;
+    int window_height, window_width;
+
     enum class Mode {
         MODE_2D,
         MODE_3D
@@ -12,17 +20,11 @@ public:
     // Costruttore che inizializza le callback
     InputManager(GLFWwindow* window);
 
-    // Funzione per impostare la modalit‡ su 2D/3D
+    // Funzione per impostare la modalit√† su 2D/3D
     void setMode(Mode mode);
 
     // Funzione per aggiornare lo stato dell'input
     void update();
-
-    // Funzione per la modalit‡ 2D (panning e zoom)
-    void update2D();
-
-    // Funzione per la modalit‡ 3D (per esempio, movimento in 3D)
-    void update3D();
 
     // Callback per la gestione dei tasti premuti
     static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -38,12 +40,24 @@ public:
     float getPanningX() { return panningX; }
     float getPanningY() { return panningY; }
 
+    glm::mat4 getProjectionMatrix() { return projection_matrix; }
+
 private:
     GLFWwindow* window;  // Finestra GLFW
     static InputManager* instance;  // Puntatore statico all'unica istanza corrente
-    Mode currentMode;  // Modalit‡ corrente (2D o 3D)
+    Mode currentMode;  // Modalit√† corrente (2D o 3D)
     float cursorX, cursorY;  // Coordinate del cursore
     float panningX, panningY;
     float scrollZoom = 1.f;  // Livello di scroll
     float zoom = 1.f; // Zoom mappato in base al bisogno a partire al livello di scroll
+
+    glm::mat4 projection_matrix;
+
+    // Funzione per la modalit√† 2D (panning e zoom)
+    void update2D();
+    // Funzione per la modalit√† 3D (per esempio, movimento in 3D)
+    void update3D();
+
+    glm::mat4 updateProjMatrix(GLFWwindow* window);
+
 };

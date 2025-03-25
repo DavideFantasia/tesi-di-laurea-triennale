@@ -39,9 +39,6 @@ public:
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
 
-    // switch (set) camera position to the indicated one
-    void SwitchPosition(glm::vec3 newPosition);
-
     // Processes input received from any keyboard-like input system blocking the camera to the terrain map used
     void ProcessKeyboard(CameraMovement direction, float deltaTime);
 
@@ -50,9 +47,6 @@ public:
 
     // Processes input received from a mouse scroll-wheel event
     void ProcessMouseScroll(float yOffset);
-
-    //return y from heightmap, given x and z
-    float TerrainHeight(float x, float z);
 
     // Calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();

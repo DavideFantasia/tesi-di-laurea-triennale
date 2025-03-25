@@ -3,6 +3,8 @@
 int GUIManager::selected_fractal = 0;
 bool GUIManager::is_3d = false;
 
+std::vector<std::unique_ptr<Fractal>> GUIManager::fractals;
+
 void GUIManager::init(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -10,6 +12,16 @@ void GUIManager::init(GLFWwindow* window) {
 
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 430");
+
+    fractals.push_back(std::make_unique<Mandelbrot>());
+    fractals.push_back(std::make_unique<Julia>());
+    fractals.push_back(std::make_unique<Sierpinski>());
+    fractals.push_back(std::make_unique<Koch>());
+    fractals.push_back(std::make_unique<Barnsley>());
+    fractals.push_back(std::make_unique<Newton>());
+
+    fractals.push_back(std::make_unique<MandelBulb>());
+
 }
 
 void GUIManager::render(float zoom2D) {
@@ -18,20 +30,22 @@ void GUIManager::render(float zoom2D) {
     ImGui::NewFrame();
 
     ImGui::BeginMainMenuBar();
+
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
     if (ImGui::BeginMenu("Fractal's List")) {
-        if (ImGui::Selectable("Mandelbrot", selected_fractal == 0)) selected_fractal = 0;
-        if (ImGui::Selectable("Julia's Set", selected_fractal == 1)) selected_fractal = 1;
-        if (ImGui::Selectable("Serpinski's Triangle", selected_fractal == 2)) selected_fractal = 2;
+        //si itera sulla lista di frattali disponibili, mostrando il bottone per selezionarlo
+        for (int i = 0; i < fractals.size(); i++) {
+            if (ImGui::Selectable(fractals[i]->getName(), selected_fractal == i)) {
+                selected_fractal = i;
+                fractals[selected_fractal]->reset_param();
+                is_3d = fractals[selected_fractal]->get_3D();
+            }
+        }
         ImGui::EndMenu();
     }
 
-    ImGui::Checkbox("3D", &is_3d);
-
-    ImGui::Text("Zoom: %.10f", zoom2D);
-
-    ImGui::Text("Tempo: %.2f", (float)ImGui::GetTime());
+    fractals[selected_fractal]->renderGUI();
 
     ImGui::EndMainMenuBar();
 
@@ -46,4 +60,5 @@ void GUIManager::cleanUp() {
 }
 
 bool GUIManager::is_3d_enabled() { return is_3d; }
-int GUIManager::get_selected_fractal() { return selected_fractal; }
+
+Fractal& GUIManager::get_selected_fractal() { return *fractals[selected_fractal]; }

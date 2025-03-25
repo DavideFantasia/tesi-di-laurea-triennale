@@ -1,5 +1,6 @@
 #version 430 core
-#define RECURSION_LIMIT 10000
+//#pragma optionNV(fastmath on)
+#define RECURSION_LIMIT 100000
 
 out vec4 FragColor;
 
@@ -9,8 +10,6 @@ uniform vec2 uResolution;
 
 uniform vec2 uCenter; // Centro del frattale
 uniform float uZoom;  // Livello di zoom
-uniform int uFrame;
-uniform float uTime;
 
 // Method for the mathematical constructoin of the mandelbrot set
 int mandelbrot (vec2 c) {

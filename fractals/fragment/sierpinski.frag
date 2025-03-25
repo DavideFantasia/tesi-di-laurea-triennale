@@ -10,7 +10,6 @@ uniform vec2 uResolution;
 
 uniform vec2 uCenter; // Centro del frattale
 uniform float uZoom;  // Livello di zoom
-uniform int uFrame;
 uniform float uTime; //tempo in secondi
 
 // Returns a normalized directoin based on an angle
@@ -45,7 +44,7 @@ float sierpinskiTriangle (inout vec2 uv, int recursionCount) {
         uv *= 2.0; // Scales down the fractal
         uv.y -= 2.0 * sqrt (3.0) / 3.0; // Translates the fractal to the new Y position (sends it to the top)
         uv.x = abs (uv.x); // Makes a reflection plane on the Y axis
-        uv = ref (uv, vec2 (1.0, -sqrt (3.0) / 3.0), (11.0 / 6.0) * PI); // Makes a reflection plane on the bototm right vertex of the triangle, with an angle of 330°
+        uv = ref (uv, vec2 (1.0, -sqrt (3.0) / 3.0), (11.0 / 6.0) * PI); // Makes a reflection plane on the bototm right vertex of the triangle, with an angle of 330Â°
     }
 
     float d = sigendDistTriangle (uv) / scale; // Calculates de tistance to an equilateral triangle centered on the center of the screen

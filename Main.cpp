@@ -31,7 +31,7 @@ int main(void)
     GUIManager::init(window.getGLFWwindow());
     InputManager inputManager(window.getGLFWwindow());
     
-    //se Ë impostata la modalit‡ 3D si setta di conseguenza la modalit‡ di input
+    //se √® impostata la modalit√† 3D si setta di conseguenza la modalit√† di input
     GUIManager::is_3d_enabled() ? 
             inputManager.setMode(InputManager::Mode::MODE_3D) 
             : inputManager.setMode(InputManager::Mode::MODE_2D);
@@ -48,24 +48,15 @@ int main(void)
     quad_render.setupQuad();
 
     check_gl_errors(FILE_POSITION, false);
-
-    //shader specifica di calcolo del frattale
-    Shader fractals_shaders[3];
-    fractals_shaders[0].create_program("fractals/quad.vert", "fractals/fragment/mandelbrot.frag");
-    fractals_shaders[1].create_program("fractals/quad.vert", "fractals/fragment/julia.frag");
-    fractals_shaders[2].create_program("fractals/quad.vert", "fractals/fragment/sierpinski.frag");
-
-
-    for(int i=0; i< 3; i++)
-        printActiveUniforms(fractals_shaders[i].program);
-    check_gl_errors(FILE_POSITION, false);
+ 
+    glDisable(GL_DEPTH_TEST);
 
     // Variabili per il frattale
     glm::vec2 center = glm::vec2(-0.5f, 0.2f);
 
-    glDisable(GL_DEPTH_TEST);
-
     int currentFrame = 0;
+
+
     // Loop until the user closes the window  
     while (!window.shouldClose()){
         currentFrame++;
@@ -75,18 +66,20 @@ int main(void)
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        Shader selected_shader = fractals_shaders[GUIManager::get_selected_fractal()];
-        selected_shader.use();
+        Fractal &selected_fractal = GUIManager::get_selected_fractal();
 
-        glUniform2fv(selected_shader["uResolution"], 1, &glm::vec2(framebuffer.getWidth(), framebuffer.getHeight())[0]);
-
-        center.x -= inputManager.getPanningX();
-        center.y += inputManager.getPanningY();
-
-        glUniform2fv(selected_shader["uCenter"], 1, &center[0]);
-        glUniform1f(glGetUniformLocation(selected_shader.program, "uZoom"), inputManager.getZoom2D());
-        glUniform1i(glGetUniformLocation(selected_shader.program, "uFrame"), currentFrame);
-        glUniform1f(glGetUniformLocation(selected_shader.program, "uTime"), (float)ImGui::GetTime());
+        //check per vedere se il frattale √® tridimensionale
+        
+        GUIManager::is_3d_enabled() ?
+            inputManager.setMode(InputManager::Mode::MODE_3D)
+            : inputManager.setMode(InputManager::Mode::MODE_2D);
+        
+        selected_fractal.updateParameters(inputManager);
+        //invio delle uniform relative allo specifico frattale alla GPU 
+        //(il relativo program shader viene impostato nella funzione)
+        selected_fractal.setUniform();
+        glUniform2f(glGetUniformLocation(selected_fractal.getShaderProgram(), "uResolution"), framebuffer.getWidth(), framebuffer.getHeight());
+ 
         // Renderizza il quad per calcolare il frattale
         glBindVertexArray(quad_render.quadVAO); // Usa direttamente il VAO
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -102,6 +95,7 @@ int main(void)
         GUIManager::render(inputManager.getZoom2D());
         inputManager.update();
 
+        //swap dei buffer e poll degli eventi
         window.swapBuffers();
         window.pollEvents();
     }
