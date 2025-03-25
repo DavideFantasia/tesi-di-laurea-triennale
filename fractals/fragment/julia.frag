@@ -13,6 +13,7 @@ uniform float uZoom;  // Livello di zoom
 
 uniform vec2 uCostant;
 
+
 // Method for the mathematical construction of the julia set
 int juliaSet (vec2 c, vec2 constant) {
   int recursionCount;
@@ -47,7 +48,9 @@ void main(){
     uv *= 0.9;
 
     vec2 c = uv;
+
     int recursionCount = juliaSet (c, uCostant);
+
     float f = float(recursionCount) / float(RECURSION_LIMIT);
 
     float offset = 0.5;

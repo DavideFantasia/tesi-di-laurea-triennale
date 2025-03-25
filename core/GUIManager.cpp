@@ -2,6 +2,7 @@
 
 int GUIManager::selected_fractal = 0;
 bool GUIManager::is_3d = false;
+
 std::vector<std::unique_ptr<Fractal>> GUIManager::fractals;
 
 void GUIManager::init(GLFWwindow* window) {
@@ -20,6 +21,7 @@ void GUIManager::init(GLFWwindow* window) {
     fractals.push_back(std::make_unique<Newton>());
 
     fractals.push_back(std::make_unique<MandelBulb>());
+
 }
 
 void GUIManager::render(float zoom2D) {
@@ -58,6 +60,5 @@ void GUIManager::cleanUp() {
 }
 
 bool GUIManager::is_3d_enabled() { return is_3d; }
+
 Fractal& GUIManager::get_selected_fractal() { return *fractals[selected_fractal]; }
-
-

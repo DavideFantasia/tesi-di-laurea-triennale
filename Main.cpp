@@ -31,7 +31,7 @@ int main(void)
     GUIManager::init(window.getGLFWwindow());
     InputManager inputManager(window.getGLFWwindow());
     
-    //se Ë impostata la modalit‡ 3D si setta di conseguenza la modalit‡ di input
+    //se √® impostata la modalit√† 3D si setta di conseguenza la modalit√† di input
     GUIManager::is_3d_enabled() ? 
             inputManager.setMode(InputManager::Mode::MODE_3D) 
             : inputManager.setMode(InputManager::Mode::MODE_2D);
@@ -48,8 +48,7 @@ int main(void)
     quad_render.setupQuad();
 
     check_gl_errors(FILE_POSITION, false);
-
-   
+ 
     glDisable(GL_DEPTH_TEST);
 
     // Variabili per il frattale
@@ -69,7 +68,7 @@ int main(void)
         
         Fractal &selected_fractal = GUIManager::get_selected_fractal();
 
-        //check per vedere se il frattale Ë tridimensionale
+        //check per vedere se il frattale √® tridimensionale
         
         GUIManager::is_3d_enabled() ?
             inputManager.setMode(InputManager::Mode::MODE_3D)
@@ -80,7 +79,7 @@ int main(void)
         //(il relativo program shader viene impostato nella funzione)
         selected_fractal.setUniform();
         glUniform2f(glGetUniformLocation(selected_fractal.getShaderProgram(), "uResolution"), framebuffer.getWidth(), framebuffer.getHeight());
-        
+ 
         // Renderizza il quad per calcolare il frattale
         glBindVertexArray(quad_render.quadVAO); // Usa direttamente il VAO
         glDrawArrays(GL_TRIANGLES, 0, 6);

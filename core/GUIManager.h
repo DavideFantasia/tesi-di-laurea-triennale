@@ -20,6 +20,7 @@ public:
     static void cleanUp();
 
     static bool is_3d_enabled();
+
     static Fractal& get_selected_fractal();
 
 private:
