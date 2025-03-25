@@ -1,119 +1,158 @@
 #version 430 core
+#pragma optionNV(fastmath on)
 #define MaximumRaySteps 250
-#define MaximumDistance 200.0
-#define MinimumDistance 0.0001
+#define MaximumDistance 200.
+#define MinimumDistance .0001
 #define PI 3.141592653589793238
 
 out vec4 FragColor;
+
 in vec2 TexCoords;
 
-// Uniform passate dalla CPU
 uniform vec2 uResolution;
 uniform float uTime;
-uniform mat4 uView, uProj;    // Matrice combinata Proiezione * Vista
-//uniform mat4 uVP;
-uniform vec3 uCamPos; // Posizione della camera nel mondo
 
-// Converte colore da HSV a RGB
-vec3 hsv2rgb(vec3 c) {
-    vec4 K = vec4(1.0, 2.0/3.0, 1.0/3.0, 3.0);
-    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+uniform mat4 uProj;
+uniform mat4 uView;
+uniform vec3 uCamPos;
+
+// TRANSFORM FUNCTIONS //
+
+mat2 Rotate (float angle) {
+  float s = sin (angle);
+  float c = cos (angle);
+
+  return mat2 (c, -s, s, c);
 }
 
-// Mappa un valore da un intervallo a un altro
-float map(float value, float min1, float max1, float min2, float max2) {
-    return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+vec3 R (vec2 uv, vec3 p, vec3 l, float z) {
+  vec3 f = normalize (l - p),
+    r = normalize (cross (vec3 (0, 1, 0), f)),
+    u = cross (f, r),
+    c = p + f * z,
+    i = c + uv.x * r + uv.y * u,
+    d = normalize (i - p);
+  return d;
 }
 
-// Calcola il Mandelbulb per una data posizione
-float mandelbulb(vec3 position) {
-    vec3 z = position;
-    float dr = 1.0;
-    float r = 0.0;
-    float power = 8.0 + (5.0 * map(sin(uTime * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
-    
-    for (int i = 0; i < 10; i++) {
-        r = length(z);
-        if (r > 2.0)
-            break;
-            
-        float theta = acos(z.z / r);
-        float phi = atan(z.y, z.x);
-        dr = pow(r, power - 1.0) * power * dr + 1.0;
-        float zr = pow(r, power);
-        theta *= power;
-        phi *= power;
-        z = zr * vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-        z += position;
+vec3 hsv2rgb (vec3 c) {
+  vec4 K = vec4 (1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs (fract (c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix (K.xxx, clamp (p - K.xxx, 0.0, 1.0), c.y);
+}
+
+float map (float value, float min1, float max1, float min2, float max2) {
+  return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
+
+float mandelbulb (vec3 position) {
+  vec3 z = position;
+  float dr = 1.0;
+  float r = 0.0;
+  int iterations = 0;
+  float power = 8.0 + (5.0 * map(sin (uTime * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
+  //power = 8.0;
+  for (int i = 0; i < 10; i++) {
+    iterations = i;
+    r = length(z);
+
+    //viene superata la distanza di 2, che da mandelbrot sappiamo essere divergente
+    if (r > 2.0){
+      break;
     }
-    return 0.5 * log(r) * r / dr;
+
+    // convert to polar coordinates
+    float theta = acos (z.z / r);
+    float phi = atan (z.y, z.x);
+    dr = pow (r, power - 1.0) * power * dr + 1.0;
+
+    // scale and rotate the point
+    float zr = pow (r, power);
+    theta = theta * power;
+    phi = phi * power;
+
+    // convert back to cartesian coordinates
+    z = zr * vec3 (sin (theta) * cos (phi), sin (phi) * sin (theta), cos (theta));
+    z += position;
+  }
+  float dst = 0.5 * log (r) * r / dr;
+  return dst;
 }
 
-// Applica una rotazione 2D alla componente YZ del punto p
-float DistanceEstimator(vec3 p) {
-    float angle = -0.3 * PI;
-    mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
-    p.yz = rot * p.yz;
-    return mandelbulb(p);
+// Calculates de distance from a position p to the scene
+float DistanceEstimator (vec3 p) {
+  float mandelbulb = mandelbulb (p);
+  return mandelbulb;
 }
 
-// Funzione di Ray Marching: muove il raggio nella scena fino a colpire la superficie o oltrepassare il massimo
-vec4 RayMarcher(vec3 ro, vec3 rd) {
-    float totalDistance = 0.0;
-    vec3 curPos = ro;
-    bool hit = false;
-    float steps;
-    
-    for (steps = 0.0; steps < float(MaximumRaySteps); steps++) {
-        vec3 p = ro + totalDistance * rd;
-        float dist = DistanceEstimator(p);
-        totalDistance += dist;
-        curPos = ro + rd * totalDistance;
-        if (dist < MinimumDistance) {
-            hit = true;
-            break;
-        } else if (totalDistance > MaximumDistance) {
-            break;
-        }
+// Marches the ray in the scene
+vec4 RayMarcher (vec3 ro, vec3 rd) {
+  float steps = 0.0;
+  float totalDistance = 0.0;
+  float minDistToScene = 100.0;
+  vec3 minDistToScenePos = ro;
+  float minDistToOrigin = 100.0;
+  vec3 minDistToOriginPos = ro;
+  vec4 col = vec4 (0.0, 0.0, 0.0, 1.0);
+  vec3 curPos = ro;
+  bool hit = false;
+
+  for (steps = 0.0; steps < float (MaximumRaySteps); steps++) {
+    vec3 p = ro + totalDistance * rd; // Current position of the ray
+    float distance = DistanceEstimator (p); // Distance from the current position to the scene
+    curPos = ro + rd * totalDistance;
+    if (minDistToScene > distance) {
+      minDistToScene = distance;
+      minDistToScenePos = curPos;
     }
-    
-    vec4 col = vec4(0.0);
-    if (hit) {
-        // Se il raggio colpisce la superficie, colora in base alla distanza dalla camera
-        col.rgb = vec3(0.8 + (length(curPos) / 0.5), 1.0, 0.8);
-        col.rgb = hsv2rgb(col.rgb);
-    } else {
-        // Se il raggio non colpisce, usa la distanza minima per determinare il colore
-        col.rgb = vec3(0.8 + (length(ro + rd * totalDistance) / 0.5), 1.0, 0.8);
-        col.rgb = hsv2rgb(col.rgb);
-        col.rgb *= 1.0 / (totalDistance * totalDistance);
-        col.rgb /= map(sin(uTime * 3.0), -1.0, 1.0, 3000.0, 50000.0);
+    if(minDistToOrigin > length (curPos)) {
+      minDistToOrigin = length (curPos);
+      minDistToOriginPos = curPos;
     }
-    
-    // Alcune operazioni per simulare ambient occlusion e attenuazione
-    col.rgb /= steps * 0.08;
-    col.rgb /= pow(distance(ro, curPos), 2.0);
-    col.rgb *= 3.0;
-    return col;
-}
+    totalDistance += distance; // Increases the total distance armched
+    if (distance < MinimumDistance) {
+      hit = true;
+      break; // If the ray marched more than the max steps or the max distance, breake out
+    }
+    else if (distance > MaximumDistance) {
+      break;
+    }
+  }
 
-// Calcola la direzione del raggio a partire dalle coordinate UV e dalla matrice VP
-vec3 getRayDirection(vec2 uv, mat4 VP) {
-    vec4 clipSpace = vec4(uv, -1.0, 1.0); // Coordinate in clip space
-    vec4 worldSpace = inverse(VP) * clipSpace; // Trasformazione in world space
-    return normalize(worldSpace.xyz / worldSpace.w);
+  //float iterations = float (steps) + log (log (MaximumDistance)) / log (2.0) - log (log (dot (curPos, curPos))) / log (2.0);
+
+  if (hit) {
+    col.rgb = vec3(0.8 + (length (curPos) / 0.5), 1.0, 0.8);
+    col.rgb = hsv2rgb (col.rgb);
+  }
+  else {
+    col.rgb = vec3 (0.8 + (length (minDistToScenePos) / 0.5), 1.0, 0.8);
+    col.rgb = hsv2rgb (col.rgb);
+    col.rgb *= 1.0 / (minDistToScene * minDistToScene);
+    col.rgb /= map (sin (uTime * 3.0), -1.0, 1.0, 3000.0, 50000.0);
+  }
+
+  col.rgb /= steps * 0.08; // Ambeint occlusion
+  col.rgb /= pow (distance (ro, minDistToScenePos), 2.0);
+  col.rgb *= 3.0;
+
+  return col;
 }
 
 void main() {
-    // Calcola coordinate normalizzate: da 0 a 1 -> da -1 a 1 con correzione per il rapporto d'aspetto
-    vec2 uv = (TexCoords * 2.0 - 1.0) * uResolution / uResolution.y;
-    
-    // Imposta l'origine del raggio dalla posizione della camera (passata dalla CPU)
-    vec3 ro = uCamPos;
-    // Calcola la direzione del raggio usando la matrice VP
-    vec3 rd = getRayDirection(uv, uView*uProj);
-    
-    vec4 col = RayMarcher(ro, rd);
-    FragColor = vec4(col.rgb, 1.0);
+  // Normalized pixel coordinates (from 0 to 1)
+  vec2 uv = (TexCoords * 2.0 - 1.0) * uResolution / uResolution.y;
+
+  vec3 ro = vec3 (0, 0, -2.0); // Ray origin
+  vec3 rd = R(uv, ro, vec3 (0, 0, 1), 1.); // Ray direction
+
+  ro = (uView * vec4(ro, 1.0)).xyz;
+  rd = (uView * vec4(rd, 0.0)).xyz;
+
+  vec4 col = RayMarcher (ro, rd);
+
+  // Output to screen
+  FragColor = vec4 (col);
+  FragColor.rgb = pow(FragColor.rgb, vec3(1.0 / 2.2)); //gamma correction
+
 }

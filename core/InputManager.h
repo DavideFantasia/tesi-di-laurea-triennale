@@ -10,6 +10,7 @@
 class InputManager {
 public:
     Camera camera;
+    int window_height, window_width;
 
     enum class Mode {
         MODE_2D,
@@ -39,6 +40,8 @@ public:
     float getPanningX() { return panningX; }
     float getPanningY() { return panningY; }
 
+    glm::mat4 getProjectionMatrix() { return projection_matrix; }
+
 private:
     GLFWwindow* window;  // Finestra GLFW
     static InputManager* instance;  // Puntatore statico all'unica istanza corrente
@@ -48,9 +51,12 @@ private:
     float scrollZoom = 1.f;  // Livello di scroll
     float zoom = 1.f; // Zoom mappato in base al bisogno a partire al livello di scroll
 
+    glm::mat4 projection_matrix;
 
     // Funzione per la modalità 2D (panning e zoom)
     void update2D();
     // Funzione per la modalità 3D (per esempio, movimento in 3D)
     void update3D();
+
+    glm::mat4 updateProjMatrix(GLFWwindow* window);
 };

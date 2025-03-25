@@ -56,6 +56,8 @@ int main(void)
     glm::vec2 center = glm::vec2(-0.5f, 0.2f);
 
     int currentFrame = 0;
+
+
     // Loop until the user closes the window  
     while (!window.shouldClose()){
         currentFrame++;
@@ -74,9 +76,10 @@ int main(void)
             : inputManager.setMode(InputManager::Mode::MODE_2D);
         
         selected_fractal.updateParameters(inputManager);
-        //invio delle uniform alla GPU (il relativo program shader viene impostato nella funzione)
+        //invio delle uniform relative allo specifico frattale alla GPU 
+        //(il relativo program shader viene impostato nella funzione)
         selected_fractal.setUniform();
-        glUniform2fv(glGetUniformLocation(selected_fractal.getShaderProgram(), "uResolution"), 1, &glm::vec2(framebuffer.getWidth(), framebuffer.getHeight())[0]);
+        glUniform2f(glGetUniformLocation(selected_fractal.getShaderProgram(), "uResolution"), framebuffer.getWidth(), framebuffer.getHeight());
         
         // Renderizza il quad per calcolare il frattale
         glBindVertexArray(quad_render.quadVAO); // Usa direttamente il VAO
@@ -93,6 +96,7 @@ int main(void)
         GUIManager::render(inputManager.getZoom2D());
         inputManager.update();
 
+        //swap dei buffer e poll degli eventi
         window.swapBuffers();
         window.pollEvents();
     }

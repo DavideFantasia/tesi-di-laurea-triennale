@@ -17,6 +17,7 @@ void GUIManager::init(GLFWwindow* window) {
     fractals.push_back(std::make_unique<Sierpinski>());
     fractals.push_back(std::make_unique<Koch>());
     fractals.push_back(std::make_unique<Barnsley>());
+    fractals.push_back(std::make_unique<Newton>());
 
     fractals.push_back(std::make_unique<MandelBulb>());
 }

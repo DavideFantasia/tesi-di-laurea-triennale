@@ -49,9 +49,10 @@ float mandelbulb (vec3 position) {
 
   for (int i = 0; i < 10; i++) {
     iterations = i;
-    r = length (z);
+    r = length(z);
 
-    if (r > 2.0) {
+    //viene superata la distanza di 2, che da mandelbrot sappiamo essere divergente
+    if (r > 2.0){
       break;
     }
 
@@ -75,7 +76,7 @@ float mandelbulb (vec3 position) {
 
 // Calculates de distance from a position p to the scene
 float DistanceEstimator (vec3 p) {
-  p.yz *= Rotate (-0.3 * PI);
+  p.yz *= Rotate (-0.3 * PI); //rotazione per far vedere un angolo carino
   float mandelbulb = mandelbulb (p);
   return mandelbulb;
 }
@@ -114,10 +115,10 @@ vec4 RayMarcher (vec3 ro, vec3 rd) {
     }
   }
 
-  float iterations = float (steps) + log (log (MaximumDistance)) / log (2.0) - log (log (dot (curPos, curPos))) / log (2.0);
+  //float iterations = float (steps) + log (log (MaximumDistance)) / log (2.0) - log (log (dot (curPos, curPos))) / log (2.0);
 
   if (hit) {
-    col.rgb = vec3 (0.8 + (length (curPos) / 0.5), 1.0, 0.8);
+    col.rgb = vec3(0.8 + (length (curPos) / 0.5), 1.0, 0.8);
     col.rgb = hsv2rgb (col.rgb);
   }
   else {

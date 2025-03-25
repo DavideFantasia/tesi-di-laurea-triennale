@@ -9,6 +9,7 @@
 #include "../fractals/sierpinski.h"
 #include "../fractals/koch.h"
 #include "../fractals/barnsley.h"
+#include "../fractals/newton.h"
 
 #include "../fractals/mandelbulb.h"
 

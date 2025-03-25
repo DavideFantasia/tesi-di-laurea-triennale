@@ -4,9 +4,9 @@
 InputManager* InputManager::instance = nullptr;
 
 //costruttore
-InputManager::InputManager(GLFWwindow* window) : camera(Camera(glm::vec3(0.0f, 0.0f, 3.0f))){
+InputManager::InputManager(GLFWwindow* window) : camera(Camera()){
     this->window = window;
-
+    
     // Imposta le callback di GLFW
     if (glfwRawMouseMotionSupported())
         glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -17,6 +17,7 @@ InputManager::InputManager(GLFWwindow* window) : camera(Camera(glm::vec3(0.0f, 0
 
     // Imposta un puntatore statico all'istanza di InputManager per utilizzarlo nelle callback
     instance = this;
+    instance->updateProjMatrix(window); //inizializzazione della matrice di proieione
 
     // Imposta la modalità iniziale a 2D
     currentMode = Mode::MODE_2D;
@@ -73,7 +74,7 @@ void InputManager::update2D() {
         // Aggiorna la posizione del centro del frattale in base al movimento del mouse
         // `deltaX` e `deltaY` determinano il panning
         // Puoi scegliere una scala per quanto il mouse sposta la visualizzazione
-        float panningVelocity = 0.5f * zoom * deltaTime;
+        float panningVelocity = 0.75f * zoom * deltaTime;
         panningX = deltaX * panningVelocity;
         panningY = deltaY * panningVelocity;
 
@@ -144,6 +145,9 @@ void InputManager::cursorPosCallback(GLFWwindow* window, double xpos, double ypo
     }
 }
 
+/*
+* Callback che gestice lo scroll del mouse aggiornando lo zoom, se l'input è 3D allora aggiorna anche la matrice di proiezione
+*/
 void InputManager::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 
@@ -151,5 +155,19 @@ void InputManager::scrollCallback(GLFWwindow* window, double xoffset, double yof
     if (instance) {
         instance->scrollZoom = yoffset;  // Assegna il valore dello scroll alla variabile scrollZoom
         instance->camera.ProcessMouseScroll(yoffset);
+
+        if (instance->currentMode == InputManager::Mode::MODE_3D)
+            instance->updateProjMatrix(window);
     }
+}
+
+/*
+* Aggiorna la matrice di proiezione sulla base della dimensione della finestra e del zoom, restituisce una glm::mat4 che rappresenta
+* la matrice di proiezione
+*/
+glm::mat4 InputManager::updateProjMatrix(GLFWwindow* window) {
+    glfwGetWindowSize(window, &instance->window_width, &instance->window_height);
+    instance->projection_matrix =
+        glm::perspective(glm::radians(instance->camera.Zoom), instance->window_width / float(instance->window_height), 0.0001f, 2.f);
+    return instance->getProjectionMatrix();
 }

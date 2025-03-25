@@ -1,5 +1,6 @@
 #version 430 core
-#define RECURSION_LIMIT 10000
+//#pragma optionNV(fastmath on)
+#define RECURSION_LIMIT 100000
 
 out vec4 FragColor;
 
