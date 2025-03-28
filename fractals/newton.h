@@ -26,7 +26,8 @@ public:
     }
 
     void renderGUI() override {
-        ImGui::SliderInt("Max Iterations", &maxIterations, 1, 1000);
+        ImGui::SetNextItemWidth(ImGui::GetWindowWidth()*0.2);
+        ImGui::SliderInt("Max Iterations", &maxIterations, 1, 50);
     }
 
     GLuint getShaderProgram() const override {
@@ -35,7 +36,8 @@ public:
 
     void reset_param() override {
         center = glm::vec2(0.33f, 0.33f);
-        zoom = 1.f;
+        zoom = 1.5f;
+        InputManager::getInstance()->setZoom2D(zoom);
         animationStartTime = ImGui::GetTime();
     }
 

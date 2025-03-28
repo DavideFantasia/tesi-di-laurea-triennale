@@ -5,7 +5,7 @@
 class MandelBulb : public Fractal {
 public:
     MandelBulb() {
-        shader.create_program("fractals/quad.vert", "fractals/fragment/mandelbulb_test.frag");
+        shader.create_program("fractals/quad.vert", "fractals/fragment/mandelbulb.frag");
         name = "Mandelbulb";
         animationStartTime = 0.0f;
         is_3D = true;
@@ -14,7 +14,7 @@ public:
     void updateParameters(InputManager inputManager) override {
         camPos = inputManager.camera.Position;
         view = inputManager.camera.GetViewMatrix();
-        proj = inputManager.getProjectionMatrix();
+        zoom = inputManager.camera.Zoom;
     }
 
     void setUniform() override {
@@ -35,8 +35,8 @@ public:
         }
 
         glUniform1f(glGetUniformLocation(shader.program, "uTime"), elapsedTime);
+        glUniform1f(glGetUniformLocation(shader.program, "uZoom"), zoom);
 
-        glUniformMatrix4fv(glGetUniformLocation(shader.program, "uProj"), 1, GL_FALSE, &proj[0][0]);
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "uView"), 1, GL_FALSE, &view[0][0]);
         glUniform3fv(glGetUniformLocation(shader.program, "uCamPos"), 1, &camPos[0]);
     }
@@ -51,6 +51,7 @@ public:
 
     void reset_param() override {
         animationStartTime = ImGui::GetTime();
+        InputManager::getInstance()->camera.Zoom = 1.f;
     }
 
 private:
@@ -63,9 +64,8 @@ private:
     float pausedTime = 0.0f;  // Tempo in cui è stato in pausa
     bool is_animating = false;
     //glm::vec2 mouse;
-    glm::mat4 proj, view;
+    glm::mat4 view;
     glm::vec3 camPos;
-
     /*
     * Bottone per far riprendere l'animazione dell'incremento di potenza del frattale
     */

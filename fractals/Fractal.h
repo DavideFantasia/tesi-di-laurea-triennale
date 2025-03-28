@@ -3,12 +3,13 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp> 
 
-#include "../rendering/Shader.h"
-#include "../core/InputManager.h"
-
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+
+#include "../rendering/Shader.h"
+#include "../core/InputManager.h"
+
 
 class Fractal {
 public:

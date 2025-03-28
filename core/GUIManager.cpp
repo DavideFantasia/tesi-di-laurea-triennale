@@ -2,10 +2,11 @@
 
 int GUIManager::selected_fractal = 0;
 bool GUIManager::is_3d = false;
-
 std::vector<std::unique_ptr<Fractal>> GUIManager::fractals;
 
 void GUIManager::init(GLFWwindow* window) {
+    if (window) { std::cerr << "GLFW window is null!" << std::endl; }
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::StyleColorsDark();
@@ -13,18 +14,19 @@ void GUIManager::init(GLFWwindow* window) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 430");
 
+    ImGui::GetStyle().ScaleAllSizes(2.f); // Ingrandisce tutti i widget del 50%
+    //2D
     fractals.push_back(std::make_unique<Mandelbrot>());
     fractals.push_back(std::make_unique<Julia>());
     fractals.push_back(std::make_unique<Sierpinski>());
     fractals.push_back(std::make_unique<Koch>());
     fractals.push_back(std::make_unique<Barnsley>());
     fractals.push_back(std::make_unique<Newton>());
-
+    //3D
     fractals.push_back(std::make_unique<MandelBulb>());
-
 }
 
-void GUIManager::render(float zoom2D) {
+void GUIManager::render() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -60,5 +62,6 @@ void GUIManager::cleanUp() {
 }
 
 bool GUIManager::is_3d_enabled() { return is_3d; }
-
 Fractal& GUIManager::get_selected_fractal() { return *fractals[selected_fractal]; }
+
+

@@ -19,8 +19,9 @@ public:
 
     // Costruttore che inizializza le callback
     InputManager(GLFWwindow* window);
+    static InputManager* getInstance() { return instance; }
 
-    // Funzione per impostare la modalit√† su 2D/3D
+    // Funzione per impostare la modalit‡ su 2D/3D
     void setMode(Mode mode);
 
     // Funzione per aggiornare lo stato dell'input
@@ -36,7 +37,8 @@ public:
     static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
     // Getter dello zoom
-    float getZoom2D() { return zoom; }
+    double getZoom2D() { return zoom; }
+    void setZoom2D(double _zoom) { zoom = _zoom;  }
     float getPanningX() { return panningX; }
     float getPanningY() { return panningY; }
 
@@ -45,19 +47,18 @@ public:
 private:
     GLFWwindow* window;  // Finestra GLFW
     static InputManager* instance;  // Puntatore statico all'unica istanza corrente
-    Mode currentMode;  // Modalit√† corrente (2D o 3D)
+    Mode currentMode;  // Modalit‡ corrente (2D o 3D)
     float cursorX, cursorY;  // Coordinate del cursore
     float panningX, panningY;
-    float scrollZoom = 1.f;  // Livello di scroll
-    float zoom = 1.f; // Zoom mappato in base al bisogno a partire al livello di scroll
+    double scrollZoom = 1.f;  // Livello di scroll
+    double zoom = 1.f; // Zoom mappato in base al bisogno a partire al livello di scroll
 
     glm::mat4 projection_matrix;
 
-    // Funzione per la modalit√† 2D (panning e zoom)
+    // Funzione per la modalit‡ 2D (panning e zoom)
     void update2D();
-    // Funzione per la modalit√† 3D (per esempio, movimento in 3D)
+    // Funzione per la modalit‡ 3D (per esempio, movimento in 3D)
     void update3D();
 
     glm::mat4 updateProjMatrix(GLFWwindow* window);
-
 };

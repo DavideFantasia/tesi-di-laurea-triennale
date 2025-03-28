@@ -34,7 +34,8 @@ class Barnsley : public Fractal {
 
         void reset_param() override {
             center = glm::vec2(0.33f, 0.33f);
-            zoom = 1.f;
+            zoom = 1.5f;
+            InputManager::getInstance()->setZoom2D(zoom);
             animationStartTime = ImGui::GetTime();
         }
 

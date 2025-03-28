@@ -34,7 +34,7 @@ public:
     float Zoom;
 
     // Constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(2.19f, 0.5f, 1.46f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -138.15f, float pitch = -4.95f);
+    Camera(glm::vec3 position = glm::vec3(0.86f, 0.49f, -1.38f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = -238.f, float pitch = -22.f);
 
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
@@ -50,4 +50,6 @@ public:
 
     // Calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
+
+    void PrettyPrint();
 };

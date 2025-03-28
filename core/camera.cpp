@@ -1,8 +1,12 @@
 #include "./camera.h"
 
+#include <iostream>
+#include <iomanip>
+
+//Position(glm::vec3(0.f,0.f,2.f)),Front(glm::vec3(0.f, 0.f, -0.1f)), MovementSpeed(1.f), MouseSensitivity(0.5f), Zoom(45.0f) {
 // Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
-    :Position(glm::vec3(0.f,0.f,0.f)),Front(glm::vec3(0.f, 0.f, -0.1f)), MovementSpeed(1.75f), MouseSensitivity(0.75f), Zoom(45.0f) {
+    :Position(glm::vec3(0.86f,0.49f,-1.38f)),Front(glm::vec3(-0.48f, -0.38f, 0.79f)), MovementSpeed(1.f), MouseSensitivity(.75f), Zoom(1.0f),Yaw(-238.f),Pitch(-22.f){
     Position = position;
     WorldUp = up;
     Yaw = yaw;
@@ -27,11 +31,11 @@ void Camera::ProcessKeyboard(CameraMovement direction, float deltaTime) {
     if (direction == RIGHT)
         Position += Right * velocity;
     if (direction == UP)
-        Position += Up * velocity;
+        Position += WorldUp * velocity;
     if (direction == DOWN)
-        Position -= Up * velocity;
+        Position -= WorldUp * velocity;
     // Aggiorna i vettori della camera
-    updateCameraVectors();
+    //updateCameraVectors();
 }
 
 // Processes input received from a mouse input system
@@ -54,11 +58,12 @@ void Camera::ProcessMouseMovement(float xOffset, float yOffset, GLboolean constr
 
 // Processes input received from a mouse scroll-wheel event
 void Camera::ProcessMouseScroll(float yOffset) {
-    Zoom -= yOffset;
-    if (Zoom < 1.0f)
-        Zoom = 1.0f;
-    if (Zoom > 45.0f)
-        Zoom = 45.0f;
+    if (yOffset < 0) {
+        Zoom *= 1.1f;  // Zoom in
+    }
+    else if (yOffset > 0) {
+        Zoom *= 0.9f;  // Zoom out
+    }
 }
 
 // Calculates the front vector from the Camera's (updated) Euler Angles
@@ -71,5 +76,39 @@ void Camera::updateCameraVectors() {
     Front = glm::normalize(front);
     Right = glm::normalize(glm::cross(Front, WorldUp));
     Up = glm::normalize(glm::cross(Right, Front));
+}
+
+void Camera::PrettyPrint() {
+    std::cout << "Camera Details:" << std::endl;
+    std::cout << "-----------------" << std::endl;
+
+    std::cout << "Position: ("
+        << Position.x << ", "
+        << Position.y << ", "
+        << Position.z << ")" << std::endl;
+
+    std::cout << "Front: ("
+        << Front.x << ", "
+        << Front.y << ", "
+        << Front.z << ")" << std::endl;
+
+    std::cout << "Up: ("
+        << Up.x << ", "
+        << Up.y << ", "
+        << Up.z << ")" << std::endl;
+
+    std::cout << "Right: ("
+        << Right.x << ", "
+        << Right.y << ", "
+        << Right.z << ")" << std::endl;
+
+    std::cout << "Yaw: " << Yaw << " degrees" << std::endl;
+    std::cout << "Pitch: " << Pitch << " degrees" << std::endl;
+
+    std::cout << "Movement Speed: " << MovementSpeed << std::endl;
+    std::cout << "Mouse Sensitivity: " << MouseSensitivity << std::endl;
+    std::cout << "Zoom: " << Zoom << std::endl;
+
+    std::cout << "-----------------" << std::endl;
 }
 

@@ -14,6 +14,8 @@ uniform float uZoom;  // Livello di zoom
 uniform vec2 uCostant;
 
 
+vec2 final_pos;
+
 // Method for the mathematical construction of the julia set
 int juliaSet (vec2 c, vec2 constant) {
   int recursionCount;
@@ -28,7 +30,29 @@ int juliaSet (vec2 c, vec2 constant) {
     }
   }
 
+  final_pos = z;
   return recursionCount;
+}
+
+vec3 colorize(int iteration, vec2 z) {
+    if (iteration == RECURSION_LIMIT) {
+        return vec3(1.0); // Colore bianco per i punti interni
+    }
+    
+    // Smooth iteration count per ridurre le bande di colore
+    float smooth_iter = float(iteration) + 1.0 - log2(log2(length(z)));
+    float t = smooth_iter / float(RECURSION_LIMIT);
+    
+    // Funzione di contrasto: enfatizza i punti con alto numero di iterazioni
+    float exposure = exp(.5 * t);
+
+    // Color mapping basato su funzioni sinusoidali
+    vec3 color = 0.5 + 0.5 * cos(3.0 + t * 6.28318 + vec3(0.0, 0.6, 1.0));
+
+    // maggior esposizione nei punti che impiegano più tempo a divergere
+     color *= exposure * 3.0;  // Più brillantezza per i punti vicini alla convergenza
+     
+    return clamp(color, 0.0, 1.0); // colore nel range [0,1]
 }
 
 // Main method of the sahder
@@ -48,19 +72,9 @@ void main(){
     uv *= 0.9;
 
     vec2 c = uv;
-
     int recursionCount = juliaSet (c, uCostant);
-
-    float f = float(recursionCount) / float(RECURSION_LIMIT);
-
-    float offset = 0.5;
-    vec3 saturation = vec3 (1.0, 1.0, 1.0);
-    float totalSaturation = 1.0;
-    float ff = pow (f, 1.0 - (f * 1.0));
-    col.r = smoothstep (0.0, 1.0, ff) * (uv2.x * 0.5 + 0.3);
-    col.b = smoothstep (0.0, 1.0, ff) * (uv2.y * 0.5 + 0.3);
-    col.g = smoothstep (0.0, 1.0, ff) * (-uv2.x * 0.5 + 0.3);
-    col.rgb *= 5000.0 * saturation * totalSaturation;
-
+    
+    col = colorize(recursionCount, final_pos);
+    
     FragColor = vec4 (col.rgb, 1.0); // Outputs the result color to the screen
 }
