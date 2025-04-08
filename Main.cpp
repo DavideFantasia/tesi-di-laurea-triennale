@@ -15,10 +15,12 @@
 #include "core/Window.h"
 #include "core/GUIManager.h"
 #include "core/InputManager.h"
+#include "core/LogSys.h"
 
 #include "rendering/Shader.h"
 #include "rendering/FrameBuffer.h"
 #include "rendering/Renderer.h"
+
 
 int main(void)
 {
@@ -31,10 +33,8 @@ int main(void)
     GUIManager::init(window.getGLFWwindow());
     InputManager inputManager(window.getGLFWwindow());
     
-    //se è impostata la modalità 3D si setta di conseguenza la modalità di input
-    GUIManager::is_3d_enabled() ? 
-            inputManager.setMode(InputManager::Mode::MODE_3D) 
-            : inputManager.setMode(InputManager::Mode::MODE_2D);
+    //inizializzazione della modalità di input (user 3D, user 2D o automatica)
+    inputManager.setMode(GUIManager::getMode());
 
     printout_opengl_glsl_info();
 
@@ -67,11 +67,9 @@ int main(void)
 
         //check per vedere se il frattale è tridimensionale
         
-        GUIManager::is_3d_enabled() ?
-            inputManager.setMode(InputManager::Mode::MODE_3D)
-            : inputManager.setMode(InputManager::Mode::MODE_2D);
-        
+        inputManager.setMode(GUIManager::getMode());
         selected_fractal.updateParameters(inputManager);
+
         //invio delle uniform relative allo specifico frattale alla GPU 
         //(il relativo program shader viene impostato nella funzione)
         selected_fractal.setUniform();
@@ -95,13 +93,16 @@ int main(void)
         //swap dei buffer e poll degli eventi
         window.swapBuffers();
         window.pollEvents();
+
+        Log_System::add_data(inputManager.getZoom());
     }
 
     GUIManager::cleanUp();
     quad_render.cleanUp();
     framebuffer.cleanUp();
-    delete &window;
     glUseProgram(0);
+    
+    Log_System::print_log();
 
     return 0;
 }

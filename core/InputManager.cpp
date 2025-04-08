@@ -28,7 +28,7 @@ void InputManager::setMode(Mode mode) {
 }
 
 /**
-* Funzione di smistamento della strategia 2D/3D sulla base del discriminante (currentMode)
+* Funzione di smistamento della strategia user 2D/3D o Automatica sulla base del discriminante (currentMode)
 **/
 void InputManager::update() {
     // Gestisci la modalità 2D
@@ -39,13 +39,30 @@ void InputManager::update() {
         case Mode::MODE_3D:
             update3D();
             break;
+        case Mode::MODE_AUTOSCROLL:
+            autoscroll();
+            break;
         default:
             std::cout << "errore nella gestione della modalità di input"<<std::endl;
             exit(1);
     }
 }
 
-void InputManager::update2D() {
+double InputManager::getZoom() {
+    switch (currentMode) {
+        case Mode::MODE_2D:
+            return InputManager::getZoom2D();
+        case Mode::MODE_3D:
+            return camera.Zoom;
+        case Mode::MODE_AUTOSCROLL:
+            return InputManager::getZoom2D();
+        default:
+            std::cout << "errore nella gestione della modalità di zoom" << std::endl;
+            exit(1);
+    }
+}
+
+void InputManager::update2D(){
     // Implementazione dello zoom tramite scroll del mouse
     if (scrollZoom < 0) {
         zoom *= 1.1f;  // Zoom in
@@ -53,9 +70,6 @@ void InputManager::update2D() {
     else if (scrollZoom > 0) {
         zoom *= 0.9f;  // Zoom out
     }
-
-    // Limita il range dello zoom
-    //zoom = std::max(0.0000001f, std::min(zoom, 100.0f));
 
     // Resetta lo scrollZoom
     scrollZoom = 0;
@@ -124,6 +138,10 @@ void InputManager::update3D() {
     }
 }
 
+void InputManager::autoscroll() {
+    zoom *= 0.95f;
+}
+
 void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
     if (ImGui::GetIO().WantCaptureKeyboard) return;
@@ -138,6 +156,10 @@ void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int ac
             instance->currentMode = Mode::MODE_2D;
             std::cout << "Switched to 2D mode!" << std::endl;
         }
+    }
+
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
 }
 

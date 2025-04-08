@@ -11,7 +11,7 @@ public:
     }
 
     void updateParameters(InputManager inputManager) override {
-        zoom = inputManager.getZoom2D();
+        zoom = inputManager.getZoom();
         center.x -= inputManager.getPanningX();
         center.y += inputManager.getPanningY();
     }
@@ -43,7 +43,7 @@ public:
     }
 
     void reset_param() override {
-        center = glm::vec2(-0.5f, 0.2f);
+        center = glm::vec2(-1.78646719f, 5.34203216e-14f);
         zoom = 1.5f;
         InputManager::getInstance()->setZoom2D(zoom);
     }
@@ -51,6 +51,6 @@ public:
 private:
     Shader shader, shader_double;
     bool wants_double = false;
-    glm::vec2 center = glm::vec2(-0.5f, 0.2f);
-    double zoom = 1.0f;
+    glm::vec2 center = glm::vec2(-1.78646719f, 5.34203216e-14f);
+    double zoom = 1.5f;
 };

@@ -11,7 +11,7 @@ class Barnsley : public Fractal {
         }
 
         void updateParameters(InputManager inputManager) override {
-            zoom = inputManager.getZoom2D();
+            zoom = inputManager.getZoom();
             center.x -= inputManager.getPanningX();
             center.y += inputManager.getPanningY();
         }

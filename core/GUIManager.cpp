@@ -1,7 +1,9 @@
 #include "GUIManager.h"
+#include <iostream>
 
 int GUIManager::selected_fractal = 0;
-bool GUIManager::is_3d = false;
+InputManager::Mode GUIManager::current_mode = InputManager::Mode::MODE_2D;
+bool GUIManager::wants_log = false;
 std::vector<std::unique_ptr<Fractal>> GUIManager::fractals;
 
 void GUIManager::init(GLFWwindow* window) {
@@ -34,17 +36,27 @@ void GUIManager::render() {
     ImGui::BeginMainMenuBar();
 
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-
+    //impostazione della modalità se con autoscroll
+    if (ImGui::Checkbox("Log", &wants_log)) {
+        current_mode = InputManager::Mode::MODE_AUTOSCROLL;
+    }
+    
     if (ImGui::BeginMenu("Fractal's List")) {
         //si itera sulla lista di frattali disponibili, mostrando il bottone per selezionarlo
         for (int i = 0; i < fractals.size(); i++) {
             if (ImGui::Selectable(fractals[i]->getName(), selected_fractal == i)) {
                 selected_fractal = i;
                 fractals[selected_fractal]->reset_param();
-                is_3d = fractals[selected_fractal]->get_3D();
             }
         }
         ImGui::EndMenu();
+    }
+
+    if (!wants_log) {
+        //impostazione della modalità di input in base al frattale selezionato
+        fractals[selected_fractal]->get_3D() ?
+            current_mode = InputManager::Mode::MODE_3D :
+            current_mode = InputManager::Mode::MODE_2D;
     }
 
     fractals[selected_fractal]->renderGUI();
@@ -61,7 +73,8 @@ void GUIManager::cleanUp() {
     ImGui::DestroyContext();
 }
 
-bool GUIManager::is_3d_enabled() { return is_3d; }
+InputManager::Mode GUIManager::getMode() { return current_mode; }
+bool GUIManager::log_enabled() { return wants_log;  }
 Fractal& GUIManager::get_selected_fractal() { return *fractals[selected_fractal]; }
 
 

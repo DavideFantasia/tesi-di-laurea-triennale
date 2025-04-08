@@ -14,7 +14,7 @@ public:
     void updateParameters(InputManager inputManager) override {
         camPos = inputManager.camera.Position;
         view = inputManager.camera.GetViewMatrix();
-        zoom = inputManager.camera.Zoom;
+        zoom = (float)inputManager.getZoom();
     }
 
     void setUniform() override {

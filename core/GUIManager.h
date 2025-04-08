@@ -19,12 +19,14 @@ public:
     static void render();
     static void cleanUp();
 
-    static bool is_3d_enabled();
+    static bool log_enabled();
+    static InputManager::Mode getMode();
     static Fractal& get_selected_fractal();
 
 private:
     static int selected_fractal;
-    static bool is_3d;
+    static InputManager::Mode current_mode;
+    static bool wants_log;
     //lista dei frattali disponibili
     static std::vector<std::unique_ptr<Fractal>> fractals;
 };

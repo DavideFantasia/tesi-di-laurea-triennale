@@ -14,7 +14,8 @@ public:
 
     enum class Mode {
         MODE_2D,
-        MODE_3D
+        MODE_3D,
+        MODE_AUTOSCROLL
     };
 
     // Costruttore che inizializza le callback
@@ -36,8 +37,9 @@ public:
     // Callback per lo scroll (zoom)
     static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
+    double getZoom();
+
     // Getter dello zoom
-    double getZoom2D() { return zoom; }
     void setZoom2D(double _zoom) { zoom = _zoom;  }
     float getPanningX() { return panningX; }
     float getPanningY() { return panningY; }
@@ -59,6 +61,10 @@ private:
     void update2D();
     // Funzione per la modalità 3D (per esempio, movimento in 3D)
     void update3D();
+    //funzione per l'autoscroll
+    void autoscroll();
+
+    double getZoom2D() { return zoom; }
 
     glm::mat4 updateProjMatrix(GLFWwindow* window);
 };
