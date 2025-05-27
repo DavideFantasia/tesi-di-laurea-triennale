@@ -2,6 +2,11 @@
 #define PI 3.141592653589793238
 #define RECURSION_LIMIT 20
 
+/*
+ * Based on original work by Pedro T.R. Schneider
+ * https://github.com/pedrotrschneider/shader-fractals/
+ */
+
 out vec4 FragColor;
 
 in vec2 TexCoords;

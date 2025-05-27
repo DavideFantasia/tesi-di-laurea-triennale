@@ -10,13 +10,6 @@ uniform float uTime;
 uniform float uZoom = 1.0;
 uniform vec2 uCenter = vec2(0.0, 0.0);
 
-vec3 smoothColor(float t) {
-    float r = 0.5 + 0.5 * cos(6.2831 * (t + 0.0));
-    float g = 0.5 + 0.5 * cos(6.2831 * (t + 0.33));
-    float b = 0.5 + 0.5 * cos(6.2831 * (t + 0.67));
-    return vec3(r, g, b);
-}
-
 vec2 complexFunc(vec2 z) {
     float x = z.x, y = z.y;
     return vec2(x * x * x - 3.0 * x * y * y - 1.0,
@@ -50,28 +43,30 @@ void main() {
 
         z -= dz;
 
-        if (length(dz) < epsilon) {
+        if (dot(dz,dz) < epsilon*epsilon) {
             converged = true;
             break;
         }
     }
 
      vec3 color;
+     color = vec3(0.0);
+
     if (converged) {
         float normIter = float(iteration) / float(uMaxIterations);
         float smoothFactor = 0.5 + 0.5 * cos(normIter * 3.0);
         
-        // Palette Bilanciata tra Blu, Viola e Turchese
-        if (normIter < 0.3)
-            color = mix(vec3(0.2, 0.4, 0.7), vec3(0.3, 0.7, 0.9), smoothFactor);  // Blu -> Turchese
-        else if (normIter < 0.6)
-            color = mix(vec3(0.3, 0.1, 0.4), vec3(0.4, 0.2, 0.6), smoothFactor);  // Viola Scuro -> Viola Chiaro
-        else
-            color = mix(vec3(0.1, 0.2, 0.5), vec3(0.2, 0.3, 0.8), smoothFactor);  // Blu Notte -> Blu Elettrico
+        // Palette
+        vec3 c1 = mix(vec3(0.2, 0.4, 0.7), vec3(0.3, 0.7, 0.9), smoothFactor);
+        vec3 c2 = mix(vec3(0.3, 0.1, 0.4), vec3(0.4, 0.2, 0.6), smoothFactor);
+        vec3 c3 = mix(vec3(0.1, 0.2, 0.5), vec3(0.2, 0.3, 0.8), smoothFactor);
 
-        color *= smoothFactor * 1.2;  // Evidenziamo i bordi leggermente
-    } else {
-        color = vec3(0.0); // Nero per punti non convergenti
+        // Intervalli sfumati
+        float w1 = smoothstep(0.0, 0.4, normIter) * (1.0 - smoothstep(0.2, 0.5, normIter));
+        float w2 = smoothstep(0.2, 0.6, normIter) * (1.0 - smoothstep(0.5, 0.8, normIter));
+        float w3 = smoothstep(0.5, 1.0, normIter);
+
+        color = w1 * c1 + w2 * c2 + w3 * c3;
     }
 
     FragColor = vec4(color, 1.0);

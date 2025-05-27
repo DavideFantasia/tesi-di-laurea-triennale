@@ -63,6 +63,9 @@ double InputManager::getZoom() {
 }
 
 void InputManager::update2D(){
+    bool input_received = false;
+    deltaTime = ImGui::GetIO().DeltaTime;
+
     // Implementazione dello zoom tramite scroll del mouse
     if (scrollZoom < 0) {
         zoom *= 1.1f;  // Zoom in
@@ -73,23 +76,47 @@ void InputManager::update2D(){
 
     // Resetta lo scrollZoom
     scrollZoom = 0;
+    panningVelocity = 0.75f * zoom * deltaTime;
+
+    float key_dir_moltiplier = 0.5;
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        input_received = true;
+        panningX += panningVelocity * key_dir_moltiplier;
+    }
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        input_received = true;
+        panningY += panningVelocity * key_dir_moltiplier;
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        input_received = true;
+        panningX -= panningVelocity * key_dir_moltiplier;
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        input_received = true;
+        panningY -= panningVelocity * key_dir_moltiplier;
+    }
+
+    if (!input_received) {
+        panningX = 0;
+        panningY = 0;
+    }
 
     // Se ImGui cattura il mouse, non fare nulla (non aggiornare il panning)
-    if (ImGui::GetIO().WantCaptureMouse) { return; }
+    if (ImGui::GetIO().WantCaptureMouse){return;}
     
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
-    
-    // Calcola la differenza rispetto alla posizione precedente del mouse
    
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {  // Mouse sinistro premuto per panning
-        float deltaX = xpos - cursorX;
-        float deltaY = ypos - cursorY;
-        float deltaTime = ImGui::GetIO().DeltaTime;
+    // Calcola la differenza rispetto alla posizione precedente del mouse
+    float deltaX = xpos - cursorX;
+    float deltaY = ypos - cursorY;
+
+    // Mouse sinistro premuto per panning
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) { 
+        input_received = true;
         // Aggiorna la posizione del centro del frattale in base al movimento del mouse
         // `deltaX` e `deltaY` determinano il panning
         // Puoi scegliere una scala per quanto il mouse sposta la visualizzazione
-        float panningVelocity = 0.75f * zoom * deltaTime;
         panningX = deltaX * panningVelocity;
         panningY = deltaY * panningVelocity;
 
@@ -97,7 +124,8 @@ void InputManager::update2D(){
         cursorX = xpos;
         cursorY = ypos;
     }
-    else {
+
+    if (!input_received) {
         panningX = 0;
         panningY = 0;
     }
@@ -139,7 +167,9 @@ void InputManager::update3D() {
 }
 
 void InputManager::autoscroll() {
-    zoom *= 0.95f;
+    zoom *= 0.995f;
+    
+    if (zoom < 10e-7) glfwSetWindowShouldClose(instance->window, GL_TRUE);
 }
 
 void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {

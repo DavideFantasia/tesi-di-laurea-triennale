@@ -17,7 +17,7 @@ public:
     /*
     * Scrive i dati registrati su un file csv
     */
-    static void print_log();
+    static void print_log(int index);
     /*
     * Aggiunge il valore double fra quelli da registrare
     */

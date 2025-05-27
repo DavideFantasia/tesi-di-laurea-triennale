@@ -30,8 +30,9 @@ public:
             glUniform1f(glGetUniformLocation(shader.program, "uZoom"), float(zoom));
         }
             
+        glUniform1i(glGetUniformLocation(shader.program, "uRecLimit"), recursionLimit);
         glUniform2fv(glGetUniformLocation(shader.program, "uCenter"), 1, &center[0]);
-        glUniform2fv(glGetUniformLocation(shader.program, "uCostant"), 1, &juliaConstant[0]);
+        glUniform2fv(glGetUniformLocation(shader.program, "uConstant"), 1, &juliaConstant[0]);
         glUniform1f(glGetUniformLocation(shader.program, "uTime"), (float)ImGui::GetTime());
     }
 
@@ -72,6 +73,7 @@ private:
     glm::vec2 juliaConstant = glm::vec2(-0.7f, 0.27015f);
     double zoom = 1.0f;
 
+    int recursionLimit = 5000;
     int selectedConstantIndex = 3;  // Indice della costante selezionata
     
     // Lista di costanti di Julia

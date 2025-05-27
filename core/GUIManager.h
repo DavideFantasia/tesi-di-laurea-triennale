@@ -6,6 +6,7 @@
 
 #include "../fractals/mandelbrot.h"
 #include "../fractals/julia.h"
+#include "../fractals/burning_ship.h"
 #include "../fractals/sierpinski.h"
 #include "../fractals/koch.h"
 #include "../fractals/barnsley.h"

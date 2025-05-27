@@ -48,10 +48,14 @@ public:
 
 private:
     GLFWwindow* window;  // Finestra GLFW
+    float deltaTime; //componente di tempo
     static InputManager* instance;  // Puntatore statico all'unica istanza corrente
     Mode currentMode;  // Modalità corrente (2D o 3D)
+    
     float cursorX, cursorY;  // Coordinate del cursore
     float panningX, panningY;
+    float panningVelocity;
+
     double scrollZoom = 1.f;  // Livello di scroll
     double zoom = 1.f; // Zoom mappato in base al bisogno a partire al livello di scroll
 

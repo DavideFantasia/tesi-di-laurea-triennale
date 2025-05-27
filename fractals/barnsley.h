@@ -20,7 +20,7 @@ class Barnsley : public Fractal {
             shader.use();
             float elapsedTime = ImGui::GetTime() - animationStartTime;
             glUniform1f(glGetUniformLocation(shader.program, "uZoom"), zoom);
-            glUniform2fv(glGetUniformLocation(shader.program, "uCenter"), 1, &center[0]);
+            glUniform2fv(glGetUniformLocation(shader.program, "uCenter"), 1, &glm::vec2(center)[0]);
             glUniform1f(glGetUniformLocation(shader.program, "uTime"), elapsedTime);
         }
 

@@ -2,6 +2,7 @@
 
 #include "Fractal.h"
 
+
 class MandelBulb : public Fractal {
 public:
     MandelBulb() {
@@ -9,6 +10,11 @@ public:
         name = "Mandelbulb";
         animationStartTime = 0.0f;
         is_3D = true;
+    }
+
+    // Funzione map per il calcolo di power
+    float map(float value, float min1, float max1, float min2, float max2) {
+        return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
     }
 
     void updateParameters(InputManager inputManager) override {
@@ -36,6 +42,8 @@ public:
 
         glUniform1f(glGetUniformLocation(shader.program, "uTime"), elapsedTime);
         glUniform1f(glGetUniformLocation(shader.program, "uZoom"), zoom);
+        float power = 8.0 + (5.0 * map(glm::sin(elapsedTime * glm::pi<float>() / 10.0 + glm::pi<float>()), -1.0, 1.0, 0.0, 1.0));
+        glUniform1f(glGetUniformLocation(shader.program, "uPower"), power);
 
         glUniformMatrix4fv(glGetUniformLocation(shader.program, "uView"), 1, GL_FALSE, &view[0][0]);
         glUniform3fv(glGetUniformLocation(shader.program, "uCamPos"), 1, &camPos[0]);

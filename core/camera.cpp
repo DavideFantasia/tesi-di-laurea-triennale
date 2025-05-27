@@ -21,7 +21,7 @@ glm::mat4 Camera::GetViewMatrix() {
 
 // Processes input received from any keyboard-like input system
 void Camera::ProcessKeyboard(CameraMovement direction, float deltaTime) {
-    float velocity = MovementSpeed * deltaTime;
+    float velocity = MovementSpeed * deltaTime * Camera::Zoom;
     if (direction == FORWARD)
         Position += Front * velocity;
     if (direction == BACKWARD)
