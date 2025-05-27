@@ -15,96 +15,109 @@
 #include "core/Window.h"
 #include "core/GUIManager.h"
 #include "core/InputManager.h"
+#include "core/LogSys.h"
 
 #include "rendering/Shader.h"
 #include "rendering/FrameBuffer.h"
 #include "rendering/Renderer.h"
 
-int main(void)
-{
-    Window window(1920, 1080, "Renderer di Frattali");
 
-    // Initialize the library and the window
-    if (!window.init())
-        return -1;
+static float timer = 0.0f;
+const float ZOOM_INTERVAL = 0.00005f;
+const int num_test = 1; //numero di test per la raccolta dati
 
-    GUIManager::init(window.getGLFWwindow());
-    InputManager inputManager(window.getGLFWwindow());
+int main(void){
+    for (int test_i = 0; test_i < num_test; test_i++) {
+        Window window(1920, 1080, "Renderer di Frattali");
+
+        // Initialize the library and the window
+        if (!window.init())
+            return -1;
+
+        GUIManager::init(window.getGLFWwindow());
+        InputManager inputManager(window.getGLFWwindow());
     
-    //se è impostata la modalità 3D si setta di conseguenza la modalità di input
-    GUIManager::is_3d_enabled() ? 
-            inputManager.setMode(InputManager::Mode::MODE_3D) 
-            : inputManager.setMode(InputManager::Mode::MODE_2D);
+        //inizializzazione della modalit� di input (user 3D, user 2D o automatica)
+        inputManager.setMode(GUIManager::getMode());
 
-    printout_opengl_glsl_info();
+        printout_opengl_glsl_info();
 
-    FrameBuffer framebuffer;
-    framebuffer.init(window.getWidth(), window.getHeight());
+        FrameBuffer framebuffer;
+        framebuffer.init(window.getWidth(), window.getHeight());
 
-    check_gl_errors(FILE_POSITION,false);
+        check_gl_errors(FILE_POSITION,false);
 
-    Renderer quad_render;
-    quad_render.init("fractals/quad.vert", "fractals/quad.frag");
-    quad_render.setupQuad();
+        Renderer quad_render;
+        quad_render.init("fractals/quad.vert", "fractals/quad.frag");
+        quad_render.setupQuad();
 
-    check_gl_errors(FILE_POSITION, false);
- 
-    glDisable(GL_DEPTH_TEST);
+        check_gl_errors(FILE_POSITION, false);
 
-    // Variabili per il frattale
-    glm::vec2 center = glm::vec2(-0.5f, 0.2f);
+   
+        glDisable(GL_DEPTH_TEST);
 
-    int currentFrame = 0;
+    
 
+        int currentFrame = 0;
 
-    // Loop until the user closes the window  
-    while (!window.shouldClose()){
-        currentFrame++;
-        // Render here  
-        framebuffer.bind();
+        // Loop until the user closes the window  
+        while (!window.shouldClose()) {
+            currentFrame++;
+            // Render here  
+            framebuffer.bind();
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        Fractal &selected_fractal = GUIManager::get_selected_fractal();
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //check per vedere se il frattale è tridimensionale
-        
-        GUIManager::is_3d_enabled() ?
-            inputManager.setMode(InputManager::Mode::MODE_3D)
-            : inputManager.setMode(InputManager::Mode::MODE_2D);
-        
-        selected_fractal.updateParameters(inputManager);
-        //invio delle uniform relative allo specifico frattale alla GPU 
-        //(il relativo program shader viene impostato nella funzione)
-        selected_fractal.setUniform();
-        glUniform2f(glGetUniformLocation(selected_fractal.getShaderProgram(), "uResolution"), framebuffer.getWidth(), framebuffer.getHeight());
- 
-        // Renderizza il quad per calcolare il frattale
-        glBindVertexArray(quad_render.quadVAO); // Usa direttamente il VAO
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
+            Fractal& selected_fractal = GUIManager::get_selected_fractal();
 
-        framebuffer.unbind(window.getWidth(), window.getHeight());
+            //check per vedere se il frattale � tridimensionale
 
-        //Render del contenuto del framebuffer a schermo
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        quad_render.renderQuad(framebuffer.getTexture());
+            inputManager.setMode(GUIManager::getMode());
+            selected_fractal.updateParameters(inputManager);
 
-        //render GUI
-        GUIManager::render(inputManager.getZoom2D());
-        inputManager.update();
+            //invio delle uniform relative allo specifico frattale alla GPU 
+            //(il relativo program shader viene impostato nella funzione)
+            selected_fractal.setUniform();
+            glUniform2f(glGetUniformLocation(selected_fractal.getShaderProgram(), "uResolution"), framebuffer.getWidth(), framebuffer.getHeight());
 
-        //swap dei buffer e poll degli eventi
-        window.swapBuffers();
-        window.pollEvents();
+            // Renderizza il quad per calcolare il frattale
+            glBindVertexArray(quad_render.quadVAO); // Usa direttamente il VAO
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glBindVertexArray(0);
+
+            framebuffer.unbind(window.getWidth(), window.getHeight());
+
+            //Render del contenuto del framebuffer a schermo
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            quad_render.renderQuad(framebuffer.getTexture());
+
+            //render GUI
+            GUIManager::render();
+            //inputManager.update();
+
+            
+            timer += ImGui::GetIO().DeltaTime;
+
+            if (timer >= ZOOM_INTERVAL) {
+                inputManager.update();
+                timer = 0.0f;
+            }
+
+            //swap dei buffer e poll degli eventi
+            window.swapBuffers();
+            window.pollEvents();
+
+            Log_System::add_data(inputManager.getZoom());
+        }
+
+        GUIManager::cleanUp();
+        quad_render.cleanUp();
+        framebuffer.cleanUp();
+        glUseProgram(0);
+
+        Log_System::print_log(test_i);
+        glfwSetTime(0.0);
     }
-
-    GUIManager::cleanUp();
-    quad_render.cleanUp();
-    framebuffer.cleanUp();
-    delete &window;
-    glUseProgram(0);
-
     return 0;
 }

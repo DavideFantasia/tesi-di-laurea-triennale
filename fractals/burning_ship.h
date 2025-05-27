@@ -2,18 +2,18 @@
 
 #include "Fractal.h"
 
-class Mandelbrot : public Fractal {
+class Burning_Ship : public Fractal {
 public:
-    Mandelbrot(){
-        shader.create_program("fractals/quad.vert", "fractals/fragment/mandelbrot.frag");
-        shader_double.create_program("fractals/quad.vert", "fractals/fragment/double_mandelbrot.frag");
-        name = "Mandelbrot";
+    Burning_Ship() {
+        shader.create_program("fractals/quad.vert", "fractals/fragment/burning_ship.frag");
+        shader_double.create_program("fractals/quad.vert", "fractals/fragment/double_burning_ship.frag");
+        name = "Burning Ship";
     }
 
     void updateParameters(InputManager inputManager) override {
         zoom = inputManager.getZoom();
         center.x -= inputManager.getPanningX();
-        center.y += inputManager.getPanningY();
+        center.y -= inputManager.getPanningY();
     }
 
     void setUniform() override {
@@ -25,19 +25,20 @@ public:
             shader.use();
             glUniform1f(glGetUniformLocation(shader.program, "uZoom"), float(zoom));
         }
+        
         glUniform2fv(glGetUniformLocation(shader.program, "uCenter"), 1, &center[0]);
     }
 
     void renderGUI() override {
         if (ImGui::Checkbox("double precision", &wants_double)) {
             std::cout << "%b" << wants_double;
-        }        
+        }
 
-        if(wants_double) ImGui::Text("Zoom Value: %.12f", zoom);
+        if (wants_double) ImGui::Text("Zoom Value: %.12f", zoom);
     }
 
     GLuint getShaderProgram() const override {
-        if(wants_double)
+        if (wants_double)
             return shader_double.program;
         return shader.program;
     }

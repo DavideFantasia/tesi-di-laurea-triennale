@@ -11,7 +11,7 @@ class Barnsley : public Fractal {
         }
 
         void updateParameters(InputManager inputManager) override {
-            zoom = inputManager.getZoom2D();
+            zoom = inputManager.getZoom();
             center.x -= inputManager.getPanningX();
             center.y += inputManager.getPanningY();
         }
@@ -20,7 +20,7 @@ class Barnsley : public Fractal {
             shader.use();
             float elapsedTime = ImGui::GetTime() - animationStartTime;
             glUniform1f(glGetUniformLocation(shader.program, "uZoom"), zoom);
-            glUniform2fv(glGetUniformLocation(shader.program, "uCenter"), 1, &center[0]);
+            glUniform2fv(glGetUniformLocation(shader.program, "uCenter"), 1, &glm::vec2(center)[0]);
             glUniform1f(glGetUniformLocation(shader.program, "uTime"), elapsedTime);
         }
 
@@ -34,7 +34,8 @@ class Barnsley : public Fractal {
 
         void reset_param() override {
             center = glm::vec2(0.33f, 0.33f);
-            zoom = 1.f;
+            zoom = 1.5f;
+            InputManager::getInstance()->setZoom2D(zoom);
             animationStartTime = ImGui::GetTime();
         }
 

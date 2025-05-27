@@ -9,26 +9,34 @@ class Julia : public Fractal {
 public:
     Julia() {
         shader.create_program("fractals/quad.vert", "fractals/fragment/julia.frag");
+        shader_double.create_program("fractals/quad.vert", "fractals/fragment/double_julia.frag");
         name = "Julia";
         selectedConstantIndex = 3;  // Inizializza l'indice con il valore predefinito
     }
 
     void updateParameters(InputManager inputManager) override {
-        zoom = inputManager.getZoom2D();
+        zoom = inputManager.getZoom();
         center.x -= inputManager.getPanningX();
         center.y += inputManager.getPanningY();
     }
 
     void setUniform() override {
-        shader.use();
-        glUniform1f(glGetUniformLocation(shader.program, "uZoom"), zoom);
+    
+        if (wants_double) {
+            shader_double.use();
+            glUniform1d(glGetUniformLocation(shader.program, "uZoom"), zoom);
+        }else {
+            shader.use();
+            glUniform1f(glGetUniformLocation(shader.program, "uZoom"), float(zoom));
+        }
+            
+        glUniform1i(glGetUniformLocation(shader.program, "uRecLimit"), recursionLimit);
         glUniform2fv(glGetUniformLocation(shader.program, "uCenter"), 1, &center[0]);
-        glUniform2fv(glGetUniformLocation(shader.program, "uCostant"), 1, &juliaConstant[0]);
+        glUniform2fv(glGetUniformLocation(shader.program, "uConstant"), 1, &juliaConstant[0]);
         glUniform1f(glGetUniformLocation(shader.program, "uTime"), (float)ImGui::GetTime());
     }
 
     void renderGUI() override {
-        
         // Menu a tendina per selezionare le costanti
         if (ImGui::BeginMenu("Select Julia's Constant:")) {
             for (int i = 0; i < juliaConstants.size(); i++) {
@@ -40,6 +48,12 @@ public:
             }
             ImGui::EndMenu();
         }
+
+        //checkbox per passare alla doppia precisione
+        if (ImGui::Checkbox("double precision", &wants_double)) {
+            std::cout << "%b" << wants_double;
+        }
+        if (wants_double) ImGui::Text("Zoom Value: %.12f", zoom);
     }
 
     GLuint getShaderProgram() const override {
@@ -47,18 +61,21 @@ public:
     }
 
     void reset_param() override {
-        zoom = 1.0f;
+        zoom = 1.5f;
+        InputManager::getInstance()->setZoom2D(zoom);
         center = juliaConstant;
     }
 
 private:
-    Shader shader;
+    Shader shader, shader_double;
+    bool wants_double = false;
     glm::vec2 center = glm::vec2(0.5f, 0.5f);
     glm::vec2 juliaConstant = glm::vec2(-0.7f, 0.27015f);
-    float zoom = 1.0f;
+    double zoom = 1.0f;
 
+    int recursionLimit = 5000;
     int selectedConstantIndex = 3;  // Indice della costante selezionata
-
+    
     // Lista di costanti di Julia
     const std::vector<glm::vec2> juliaConstants = {
         glm::vec2(-0.7176f, -0.3842f),

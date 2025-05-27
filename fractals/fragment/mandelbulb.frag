@@ -1,8 +1,14 @@
-#version 430 core
-#define MaximumRaySteps 250
-#define MaximumDistance 200.
-#define MinimumDistance .0001
+﻿#version 430 core
+#pragma optionNV(fastmath on)
+#define MaximumRaySteps 500
+#define MaximumDistance 4.
+#define MinimumDistance 0.000001
 #define PI 3.141592653589793238
+
+/*
+ * Based on original work by Pedro T.R. Schneider
+ * https://github.com/pedrotrschneider/shader-fractals/
+ */
 
 out vec4 FragColor;
 
@@ -11,23 +17,22 @@ in vec2 TexCoords;
 uniform vec2 uResolution;
 uniform float uTime;
 
-// TRANSFORM FUNCTIONS //
+uniform float uZoom;
+uniform float uPower;
 
-mat2 Rotate (float angle) {
-  float s = sin (angle);
-  float c = cos (angle);
+uniform mat4 uView;
+uniform vec3 uCamPos;
 
-  return mat2 (c, -s, s, c);
-}
+const int NUM_LIGHTS = 1;
+vec3 lightPositions[NUM_LIGHTS] = vec3[](
+    vec3(2.0, 2.0, -3.0)
+);
 
 vec3 R (vec2 uv, vec3 p, vec3 l, float z) {
-  vec3 f = normalize (l - p),
-    r = normalize (cross (vec3 (0, 1, 0), f)),
-    u = cross (f, r),
-    c = p + f * z,
-    i = c + uv.x * r + uv.y * u,
-    d = normalize (i - p);
-  return d;
+  vec3 f = normalize (l - p);
+  vec3 r = normalize (cross (vec3 (0, 1, 0), f));
+  vec3 u = cross (f, r);
+  return normalize(p + f * z + uv.x * r + uv.y * u - p);
 }
 
 vec3 hsv2rgb (vec3 c) {
@@ -45,21 +50,19 @@ float mandelbulb (vec3 position) {
   float dr = 1.0;
   float r = 0.0;
   int iterations = 0;
-  float power = 8.0 + (5.0 * map (sin (uTime * PI / 10.0 + PI), -1.0, 1.0, 0.0, 1.0));
-
+  float power = uPower;
+  
   for (int i = 0; i < 10; i++) {
     iterations = i;
     r = length(z);
 
     //viene superata la distanza di 2, che da mandelbrot sappiamo essere divergente
-    if (r > 2.0){
-      break;
-    }
+    if (r > 2.0){ break; }
 
     // convert to polar coordinates
     float theta = acos (z.z / r);
     float phi = atan (z.y, z.x);
-    dr = pow (r, power - 1.0) * power * dr + 1.0;
+    dr = pow(r, power - 1.0) * power * dr + 1.0;
 
     // scale and rotate the point
     float zr = pow (r, power);
@@ -67,7 +70,10 @@ float mandelbulb (vec3 position) {
     phi = phi * power;
 
     // convert back to cartesian coordinates
-    z = zr * vec3 (sin (theta) * cos (phi), sin (phi) * sin (theta), cos (theta));
+    vec2 sincosTheta = sin(vec2(theta, phi));
+    vec2 coscosTheta = cos(vec2(theta, phi));
+
+    z = zr * vec3(sincosTheta.x * coscosTheta.y, sincosTheta.y * sincosTheta.x, coscosTheta.x);
     z += position;
   }
   float dst = 0.5 * log (r) * r / dr;
@@ -76,78 +82,167 @@ float mandelbulb (vec3 position) {
 
 // Calculates de distance from a position p to the scene
 float DistanceEstimator (vec3 p) {
-  p.yz *= Rotate (-0.3 * PI); //rotazione per far vedere un angolo carino
-  float mandelbulb = mandelbulb (p);
-  return mandelbulb;
+  return mandelbulb (p);
+}
+
+vec3 computeNormal(vec3 p) {
+    float eps = MinimumDistance * 2.0;
+    vec3 grad;
+    grad.x = DistanceEstimator(p + vec3(eps,0,0)) - DistanceEstimator(p - vec3(eps,0,0));
+    grad.y = DistanceEstimator(p + vec3(0,eps,0)) - DistanceEstimator(p - vec3(0,eps,0));
+    grad.z = DistanceEstimator(p + vec3(0,0,eps)) - DistanceEstimator(p - vec3(0,0,eps));
+    
+    return normalize(grad);
+}
+
+vec3 getTangent(vec3 n) {
+    vec3 up = abs(n.y) < 0.999 ? vec3(0,1,0) : vec3(1,0,0);
+    return normalize(cross(up, n));
+}
+
+vec3 horizonBasedAO(vec3 pos, vec3 normal, vec3 viewDir, int numDirs, int numSamples, vec3 baseColor) {
+    float ao = 0.0;
+    float ambientFactor = 0.4;
+    float maxAngle = 0.0;
+
+    // Costruzione sistema tangente-bitangente
+    vec3 tangent = normalize(cross(normal, vec3(0.0, 1.0, 0.0)));
+
+    float tangent_fallback = step(dot(tangent, tangent),0.0001); //if (dot(tangent,tangent) < 0.0001)
+    tangent = mix(vec3(1.0, 0.0, 0.0), tangent, tangent_fallback); //tangent = vec3(1.0, 0.0, 0.0);
+
+    vec3 bitangent = normalize(cross(normal, tangent));
+
+    for (int i = 0; i < numDirs; i++) {
+        float angleOffset = float(i) * 2.0 * PI / float(numDirs);
+        vec3 dir = cos(angleOffset) * tangent + sin(angleOffset) * bitangent;
+
+        float maxHorizonAngle = 0.0;
+
+        for (int j = 1; j <= numSamples; j++) {
+            float stepDist = float(j) * 0.05;
+            vec3 samplePos = pos + dir * stepDist;
+
+            float height = DistanceEstimator(samplePos);
+            vec3 vecToSample = samplePos - pos;
+            float distance = length(vecToSample);
+
+            float angle = asin(height / distance); // altezza angolare
+            
+            float updateMaxAngle = step(angle, maxHorizonAngle); //if (angle > maxHorizonAngle) {
+            maxHorizonAngle = mix(angle, maxHorizonAngle, updateMaxAngle); //maxHorizonAngle = angle};
+        }
+
+        float visibility = clamp(1.0 - maxHorizonAngle / (PI * 0.5), 0.4, 1.0);
+        ao += visibility;
+    }
+
+    ao /= float(numDirs);
+    return vec3(ao) * baseColor * ambientFactor;
+}
+
+//modello di illuminazione di Blinn-Phong
+vec3 blinnPhongMultipleLights(vec3 position, vec3 normal, vec3 viewPos, vec3 diffuseColor){
+    float ambientStrength = 0.3;
+    float diffuseStrength = 0.7;
+    float specularStrength = 0.5;
+    float shininess = 16.0;
+
+    vec3 viewDir = normalize(viewPos - position);
+    vec3 ambient = diffuseColor * ambientStrength;
+    vec3 totalDiffuse = vec3(0.0);
+    vec3 totalSpecular = vec3(0.0);
+
+    for (int i = 0; i < NUM_LIGHTS; i++) {
+        vec3 lightDir = normalize(lightPositions[i] - position);
+        float distance = length(lightPositions[i] - position);
+        float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
+
+        float diff = max(dot(normal, lightDir), 0.0);
+        totalDiffuse += diffuseStrength * diff * diffuseColor * attenuation;
+
+        vec3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(normal, halfDir), 0.0), shininess);
+        totalSpecular += specularStrength * spec * vec3(0.8) * attenuation;
+    }
+
+
+    // SOMMA DELLE COMPONENTI
+    vec3 ao =  horizonBasedAO(position, normal, viewDir, 8, 6, vec3(1.0));
+    
+    return (ambient + totalDiffuse)*ao + totalSpecular;
 }
 
 // Marches the ray in the scene
 vec4 RayMarcher (vec3 ro, vec3 rd) {
-  float steps = 0.0;
-  float totalDistance = 0.0;
-  float minDistToScene = 100.0;
-  vec3 minDistToScenePos = ro;
-  float minDistToOrigin = 100.0;
-  vec3 minDistToOriginPos = ro;
-  vec4 col = vec4 (0.0, 0.0, 0.0, 1.0);
-  vec3 curPos = ro;
-  bool hit = false;
+    float steps = 0.0;
+    float totalDistance = 0.0;
+    float minDistToScene = 100.0;
+    vec3 minDistToScenePos = ro;
+    float minDistToOrigin = 100.0;
+    vec3 minDistToOriginPos = ro;
+    vec4 col = vec4 (0.0, 0.0, 0.0, 1.0);
+    vec3 curPos = ro;
+    bool hit = false;
 
-  for (steps = 0.0; steps < float (MaximumRaySteps); steps++) {
-    vec3 p = ro + totalDistance * rd; // Current position of the ray
-    float distance = DistanceEstimator (p); // Distance from the current position to the scene
-    curPos = ro + rd * totalDistance;
-    if (minDistToScene > distance) {
-      minDistToScene = distance;
-      minDistToScenePos = curPos;
-    }
-    if (minDistToOrigin > length (curPos)) {
-      minDistToOrigin = length (curPos);
-      minDistToOriginPos = curPos;
-    }
-    totalDistance += distance; // Increases the total distance armched
-    if (distance < MinimumDistance) {
-      hit = true;
-      break; // If the ray marched more than the max steps or the max distance, breake out
-    }
-    else if (distance > MaximumDistance) {
-      break;
-    }
-  }
+    for (steps = 0.0; steps < float(MaximumRaySteps); steps++) {
+        vec3 p = ro + totalDistance * rd; // Current position of the ray
+        float distance = DistanceEstimator(p); // Distance from the current position to the scene
+        curPos = ro + rd * totalDistance;
+        
+        // step da 1.0 se distance <= minDistToScene
+        float updateScene = step(distance, minDistToScene); //if (minDistToScene > distance) {
+        minDistToScene = mix(minDistToScene, distance, updateScene); //minDistToScene = distance;
+        minDistToScenePos = mix(minDistToScenePos, curPos, updateScene);//minDistToScenePos = curPos;}
+        
+        float len_curPos = length(curPos);
+        float updateOrigin = step(len_curPos, minDistToOrigin);//if(minDistToOrigin > length (curPos)){
+        minDistToOrigin = mix(minDistToOrigin, len_curPos, updateOrigin);//minDistToOrigin = length (curPos);
+        minDistToOriginPos = mix(minDistToOriginPos, curPos, updateOrigin);//minDistToOriginPos = curPos;
 
-  //float iterations = float (steps) + log (log (MaximumDistance)) / log (2.0) - log (log (dot (curPos, curPos))) / log (2.0);
+        totalDistance += distance; // Increases the total distance armched
+        float dynamicEps = max(MinimumDistance, 0.0001 * totalDistance); //dynamic minimum distance 
+        if (distance < dynamicEps) {
+            hit = true;
+            break;
+        }else if (distance > MaximumDistance) {
+            break;
+        }
+      }
 
-  if (hit) {
-    col.rgb = vec3(0.8 + (length (curPos) / 0.5), 1.0, 0.8);
-    col.rgb = hsv2rgb (col.rgb);
-  }
-  else {
-    col.rgb = vec3 (0.8 + (length (minDistToScenePos) / 0.5), 1.0, 0.8);
-    col.rgb = hsv2rgb (col.rgb);
-    col.rgb *= 1.0 / (minDistToScene * minDistToScene);
-    col.rgb /= map (sin (uTime * 3.0), -1.0, 1.0, 3000.0, 50000.0);
-  }
+      col.rgb = vec3(0.0);
+      if (hit) {
+        vec3 normal = computeNormal(curPos);
+    
+        float stepFactor = float(steps) / float(MaximumRaySteps);  // Normalized steps value
+    
+        vec3 colorBase = vec3(0.6 + 0.2 * sin(length(curPos) * 3.0), 0.7, 0.9);
+        colorBase = hsv2rgb(colorBase);
+        colorBase *= (1.0 - stepFactor);  // Darken the color as steps increase
 
-  col.rgb /= steps * 0.08; // Ambeint occlusion
-  col.rgb /= pow (distance (ro, minDistToScenePos), 2.0);
-  col.rgb *= 3.0;
+        col.rgb = blinnPhongMultipleLights(curPos, normal, ro, colorBase);
 
-  return col;
+        float invSteps = 1.0 / (steps * 0.08);
+        col.rgb *= invSteps; // Ambeint occlusion
+        col.rgb *= 3.0;
+      }
+  
+      return col;
 }
 
 void main() {
   // Normalized pixel coordinates (from 0 to 1)
-  vec2 uv = (TexCoords * 2.0 - 1.0) * uResolution / uResolution.y;
-  //vec2 m = uMouse / uResolution;
+  vec2 uv = (TexCoords * 2.0 - 1.0) * uResolution / uResolution.y * uZoom;
 
-  vec3 ro = vec3 (0, 0, -2.0); // Ray origin
-  // ro.yz *= Rotate (-m.y * PI + 1.5); // Rotate thew ray with the mouse rotation
-  //ro.xz *= Rotate (uTime * 2.0 * PI / 10.0);
-  vec3 rd = R (uv, ro, vec3 (0, 0, 1), 1.); // Ray direction (based on mouse rotation)
-  //vec3 rd = normalize (vec3 (-1.0 + 2.0 * uv, 1.0));
+  vec3 ro = uCamPos;
+  vec3 rd =  normalize((inverse(uView) * vec4(uv.x, uv.y, -1.0, 0.0)).xyz);
 
-  vec4 col = RayMarcher (ro, rd);
+  vec4 col = RayMarcher(ro, rd);
 
+  //Reinhard tone mapping
+  col.rgb = col.rgb / (1.0 + col.rgb);
+  col.rgb = pow(col.rgb, vec3(1.0 / 2.2)); // gamma correction
   // Output to screen
   FragColor = vec4 (col);
+
 }

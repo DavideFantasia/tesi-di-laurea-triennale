@@ -48,7 +48,7 @@ void main() {
     const int IterationsPerFrame = 1000;  // Più alto = frattale più veloce ma più pesante da calcolare
 
     for (int i = 0; i < IterationsPerFrame; ++i) {
-        float r = rand(vec2(float(i), uTime));  
+        float r = rand(vec2(float(i), uTime)); 
         point = barnsleyFern(point, r);
 
         // Trasforma il punto in coordinate dello schermo normalizzate
