@@ -59,7 +59,7 @@ public:
 
     void reset_param() override {
         animationStartTime = ImGui::GetTime();
-        InputManager::getInstance()->camera.Zoom = 1.f;
+        InputManager::getInstance()->camera.resetParameters();
     }
 
 private:

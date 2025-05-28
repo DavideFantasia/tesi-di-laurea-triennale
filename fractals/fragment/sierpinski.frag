@@ -75,9 +75,7 @@ void main() {
     // Distance to the fractal
     float d = sierpinskiTriangle(uv, recursionCount); 
     
-    // Coloring the fractal
-    // Smoothness of the line (higher number = smoother, lower numbers = sharper)
-    float lineSmoothness = 0.0000001;
+    float lineSmoothness = 0.000001;
     // Offset for the blending of the colors in the middle
     float offset = 0.5; 
     // Red channel
