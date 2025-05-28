@@ -24,18 +24,16 @@ vec2 final_pos;
 
 // Method for the mathematical construction of the julia set
 int juliaSet (vec2 c, vec2 constant) {
-  int recursionCount;
+    int recursionCount;
+    vec2 z = c;
 
-  vec2 z = c;
+    for (recursionCount = 0; recursionCount < uRecLimit; recursionCount++) {
+        z = vec2 (z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + constant;
+        if (dot(z,z) > 4.0) break;
+    }
 
-  for (recursionCount = 0; recursionCount < uRecLimit; recursionCount++) {
-    z = vec2 (z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + constant;
-
-    if (dot(z,z) > 4.0) break;
-  }
-
-  final_pos = z;
-  return recursionCount;
+    final_pos = z;
+    return recursionCount;
 }
 
 vec3 hsv2rgb(vec3 c) {

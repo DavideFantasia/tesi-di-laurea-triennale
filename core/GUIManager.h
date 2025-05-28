@@ -13,6 +13,7 @@
 #include "../fractals/newton.h"
 
 #include "../fractals/mandelbulb.h"
+#include "../fractals/mandelbox.h"
 
 class GUIManager {
 public:

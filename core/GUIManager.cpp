@@ -27,6 +27,7 @@ void GUIManager::init(GLFWwindow* window) {
     fractals.push_back(std::make_unique<Newton>());
     //3D
     fractals.push_back(std::make_unique<MandelBulb>());
+    fractals.push_back(std::make_unique<MandelBox>());
 }
 
 void GUIManager::render() {

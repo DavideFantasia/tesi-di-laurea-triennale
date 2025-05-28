@@ -34,14 +34,12 @@ void Camera::ProcessKeyboard(CameraMovement direction, float deltaTime) {
         Position += WorldUp * velocity;
     if (direction == DOWN)
         Position -= WorldUp * velocity;
-    // Aggiorna i vettori della camera
-    //updateCameraVectors();
 }
 
 // Processes input received from a mouse input system
 void Camera::ProcessMouseMovement(float xOffset, float yOffset, GLboolean constrainPitch) {
-    xOffset *= MouseSensitivity;
-    yOffset *= MouseSensitivity;
+    xOffset *= MouseSensitivity * Zoom*1.1;
+    yOffset *= MouseSensitivity * Zoom*1.1;
 
     Yaw += xOffset;
     Pitch += yOffset;
@@ -76,6 +74,14 @@ void Camera::updateCameraVectors() {
     Front = glm::normalize(front);
     Right = glm::normalize(glm::cross(Front, WorldUp));
     Up = glm::normalize(glm::cross(Right, Front));
+}
+
+void Camera::resetParameters() {
+    Zoom = 1.f;
+    Position = glm::vec3(0.86f, 0.49f, -1.38f);
+    Yaw = -238.f;
+    Pitch = -22.f;
+    updateCameraVectors();
 }
 
 void Camera::PrettyPrint() {

@@ -27,7 +27,6 @@ int juliaSet(dvec2 c, dvec2 constant) {
 
     for (recursionCount = 0; recursionCount < uRecLimit; recursionCount++) {
         z = dvec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + constant;
-
         if (dot(z,z) > 4.0) break;
     }
 

@@ -1,15 +1,14 @@
 #version 430 core
 //#pragma optionNV(fastmath on)
-#define RECURSION_LIMIT 100000
 
 out vec4 FragColor;
-
 in vec2 TexCoords;
 
 uniform vec2 uResolution;
-
 uniform vec2 uCenter; // Centro del frattale
 uniform float uZoom;  // Livello di zoom
+
+const uint maxIterations = 100u;
 
 vec3 palette(float t) {
     // Simula una transizione da nero -> arancio scuro -> oro -> bianco caldo
@@ -37,7 +36,6 @@ void main() {
     vec2 c = uv * uZoom + uCenter;
     vec2 z = vec2(0.0);
 
-    uint maxIterations = 100u;
     uint i;
     for (i = 0u; i < maxIterations; ++i) {
         if(dot(z, z) > 4.0) break;

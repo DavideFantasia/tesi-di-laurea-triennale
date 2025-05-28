@@ -1,5 +1,4 @@
 #version 430 core
-#define RECURSION_LIMIT 100000
 
 /*
  * Based on original work by Pedro T.R. Schneider
@@ -14,6 +13,8 @@ uniform vec2 uResolution;
 uniform vec2 uCenter;
 uniform double uZoom;
 
+const uint maxIterations = 1000u;
+
 void main() {
     dvec2 res = dvec2(uResolution);
     dvec2 center = dvec2(uCenter);
@@ -22,20 +23,17 @@ void main() {
     dvec2 c = 2.0 * ((dvec2(TexCoords) - 0.5) * res) / res.y * zoom + center;
 
     dvec2 z = dvec2(0.0);
-    int i;
-    const int maxIterations = 1000;
+    uint i;
 
-    for (i = 0; i < maxIterations; ++i) {
+    for (i = 0u; i < maxIterations; ++i) {
         if(dot(z, z) > 4.0) break;
         z = dvec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
     }
 
     double t = double(i) / double(maxIterations);
 
-    dvec3 color;
-    if (i == maxIterations) {
-        color = dvec3(0.05);
-    } else {
+    dvec3 color = dvec3(0.05); // se nell'insieme, colora di nero
+    if (i != maxIterations) { // altrimenti, in base al numero di iterazioni
         double smoothness = 1.0;
         double offset = 1.5;
         color.r = smoothstep(0.0, smoothness, t) * (TexCoords.x * 0.5 + 0.5) * offset;

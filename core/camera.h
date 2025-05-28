@@ -51,5 +51,8 @@ public:
     // Calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
 
+    // Reset all parameters of the camera
+    void resetParameters();
+
     void PrettyPrint();
 };

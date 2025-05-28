@@ -73,7 +73,7 @@ private:
     glm::vec2 juliaConstant = glm::vec2(-0.7f, 0.27015f);
     double zoom = 1.0f;
 
-    int recursionLimit = 5000;
+    int recursionLimit = 2500;
     int selectedConstantIndex = 3;  // Indice della costante selezionata
     
     // Lista di costanti di Julia
