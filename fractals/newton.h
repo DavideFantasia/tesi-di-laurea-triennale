@@ -27,7 +27,7 @@ public:
 
     void renderGUI() override {
         ImGui::SetNextItemWidth(ImGui::GetWindowWidth()*0.2);
-        ImGui::SliderInt("Max Iterations", &maxIterations, 1, 50);
+        ImGui::SliderInt("Max Iterations", &maxIterations, 1, 500);
     }
 
     GLuint getShaderProgram() const override {

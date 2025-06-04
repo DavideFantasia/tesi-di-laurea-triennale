@@ -70,7 +70,7 @@ float mandelbulb (vec3 position) {
 }
 
 // Calculates de distance from a position p to the scene
-float DistanceEstimator (vec3 p) {
+float DistanceEstimator(vec3 p) {
   return mandelbulb (p);
 }
 
@@ -82,11 +82,7 @@ vec3 computeNormal(vec3 p) {
     grad.z = DistanceEstimator(p + vec3(0,0,eps)) - DistanceEstimator(p - vec3(0,0,eps));
     
     return normalize(grad);
-}
-
-vec3 getTangent(vec3 n) {
-    vec3 up = abs(n.y) < 0.999 ? vec3(0,1,0) : vec3(1,0,0);
-    return normalize(cross(up, n));
+    //return (grad/(2*eps));
 }
 
 vec3 horizonBasedAO(vec3 pos, vec3 normal, vec3 viewDir, int numDirs, int numSamples, vec3 baseColor) {
@@ -96,7 +92,7 @@ vec3 horizonBasedAO(vec3 pos, vec3 normal, vec3 viewDir, int numDirs, int numSam
 
     // Costruzione sistema tangente-bitangente
     vec3 tangent = normalize(cross(normal, vec3(0.0, 1.0, 0.0)));
-
+    
     float tangent_fallback = step(dot(tangent, tangent),0.0001); //if (dot(tangent,tangent) < 0.0001)
     tangent = mix(vec3(1.0, 0.0, 0.0), tangent, tangent_fallback); //tangent = vec3(1.0, 0.0, 0.0);
 
@@ -155,23 +151,16 @@ vec3 blinnPhongMultipleLights(vec3 position, vec3 normal, vec3 viewPos, vec3 dif
         totalSpecular += specularStrength * spec * vec3(0.8) * attenuation;
     }
 
-
     // SOMMA DELLE COMPONENTI
     vec3 ao =  horizonBasedAO(position, normal, viewDir, 8, 6, vec3(1.0));
-    
     return (ambient + totalDiffuse)*ao + totalSpecular;
 }
 
 // Marches the ray in the scene
 vec4 RayMarcher (vec3 ro, vec3 rd) {
-    float steps = 0.0;
-    float totalDistance = 0.0;
-    float minDistToScene = 100.0;
-    vec3 minDistToScenePos = ro;
-    float minDistToOrigin = 100.0;
-    vec3 minDistToOriginPos = ro;
+    float steps = 0.0, totalDistance = 0.0, minDistToScene = 100.0, minDistToOrigin = 100.0;
+    vec3 minDistToScenePos = ro, minDistToOriginPos = ro, curPos = ro;
     vec4 col = vec4 (0.0, 0.0, 0.0, 1.0);
-    vec3 curPos = ro;
     bool hit = false;
 
     for (steps = 0.0; steps < float(MaximumRaySteps); steps++) {
@@ -197,10 +186,10 @@ vec4 RayMarcher (vec3 ro, vec3 rd) {
         }else if (distance > MaximumDistance) {
             break;
         }
-      }
+    }
 
-      col.rgb = vec3(0.0);
-      if (hit) {
+    col.rgb = vec3(0.0);
+    if (hit) {
         vec3 normal = computeNormal(curPos);
     
         float stepFactor = float(steps) / float(MaximumRaySteps);  // Normalized steps value
@@ -210,13 +199,12 @@ vec4 RayMarcher (vec3 ro, vec3 rd) {
         colorBase *= (1.0 - stepFactor);  // Darken the color as steps increase
 
         col.rgb = blinnPhongMultipleLights(curPos, normal, ro, colorBase);
-
+        
         float invSteps = 1.0 / (steps * 0.08);
         col.rgb *= invSteps; // Ambient occlusion
         col.rgb *= 3.0;
-      }
-  
-      return col;
+    }
+    return col;
 }
 
 void main() {
