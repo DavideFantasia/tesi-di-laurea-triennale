@@ -39,11 +39,11 @@ void GUIManager::render() {
 
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     //impostazione della modalità se con autoscroll
-    /*
+    
     if (ImGui::Checkbox("Log", &wants_log)) {
         current_mode = InputManager::Mode::MODE_AUTOSCROLL;
     }
-    */
+    
     if (ImGui::BeginMenu("Fractal's List")) {
         //si itera sulla lista di frattali disponibili, mostrando il bottone per selezionarlo
         for (int i = 0; i < fractals.size(); i++) {

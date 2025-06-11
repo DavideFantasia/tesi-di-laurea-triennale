@@ -63,13 +63,13 @@ public:
     void reset_param() override {
         zoom = 1.5f;
         InputManager::getInstance()->setZoom2D(zoom);
-        center = juliaConstant;
+        center = glm::vec2(-0.4066,-0.3870);
     }
 
 private:
     Shader shader, shader_double;
     bool wants_double = false;
-    glm::vec2 center = glm::vec2(0.5f, 0.5f);
+    glm::vec2 center = glm::vec2(-0.4066, -0.3870);
     glm::vec2 juliaConstant = glm::vec2(-0.7f, 0.27015f);
     double zoom = 1.0f;
 

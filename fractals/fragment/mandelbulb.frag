@@ -2,7 +2,7 @@
 #pragma optionNV(fastmath on)
 #define MaximumRaySteps 500
 #define MaximumDistance 4.
-#define MinimumDistance 0.000001
+#define MinimumDistance 0.0000001
 #define PI 3.141592653589793238
 
 /*

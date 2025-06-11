@@ -34,14 +34,14 @@ vec3 hsv2rgb (vec3 c) {
 }
 
 // SDF FUNCTIONS //
-// SDF sphere
-vec4 sphere (vec4 z) {
-  float r2 = dot (z.xyz, z.xyz);
-  if (r2 < 2.0)
-    z *= (1.0 / r2);
-  else z *= 0.5;
-
-  return z;
+// SDF sphere-folding
+vec4 sphere(vec4 z) {
+    float r2 = dot(z.xyz, z.xyz);
+   
+    float scaleInner = 1.0 / r2;
+    float scaleOuter = 0.5;
+    //if r2<2.0 => scaleInner, else scaleOuter
+    return z * mix(scaleOuter, scaleInner, step(r2, 2.0));
 }
 
 // SDF box
@@ -57,7 +57,6 @@ float DE0 (vec3 pos) {
 }
 
 float DE2 (vec3 pos) {
-  //vec3 params = vec3 (0.22, 0.5, 0.5);
   vec3 params = vec3 (0.5, 0.5, 0.5);
   vec4 scale = vec4 (-20.0 * 0.272321);
   vec4 p = vec4 (pos, 1.0), p0 = p;
@@ -73,7 +72,6 @@ float DE2 (vec3 pos) {
 }
 
 float DE (vec3 pos) {
-
   float d0 = DE0 (pos);
   float d2 = DE2 (pos);
 

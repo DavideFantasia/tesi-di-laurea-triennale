@@ -12,7 +12,7 @@ void Log_System::add_data(double data) {
 
 void Log_System::print_log(int index) {
     //stampa dei dati di LOG su file csv
-    std::ofstream logfile("C:/tesi/graph/float_mandelbrot_data/log" + std::to_string(index) + ".csv");
+    std::ofstream logfile("C:/tesi/graph/NVIDIA GTX 1650TI/float_mandelbulb_data/log" + std::to_string(index) + ".csv");
     logfile << "Data,FPS\n";
     for (const auto& entry : log_data) {
         logfile << entry.data << "," << entry.fps << "\n";

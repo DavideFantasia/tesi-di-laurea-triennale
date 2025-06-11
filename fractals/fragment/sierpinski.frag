@@ -71,7 +71,7 @@ void main() {
     // Offsets the uvs to center the fractal in the middle of the screen
     uv += vec2 (0.0, 0.30); 
     // Number of iterations of the fractal (increases with time)
-    int recursionCount = int(floor(mod(floor(uTime), 40)*0.5));
+    int recursionCount = int(floor(mod(floor(uTime),40)*0.5))+2;
     // Distance to the fractal
     float d = sierpinskiTriangle(uv, recursionCount); 
     

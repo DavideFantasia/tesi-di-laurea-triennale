@@ -108,7 +108,8 @@ int main(void){
             window.swapBuffers();
             window.pollEvents();
 
-            Log_System::add_data(inputManager.getZoom());
+            //per raccolta dati
+            if(num_test>1) Log_System::add_data(inputManager.getZoom());
         }
 
         GUIManager::cleanUp();

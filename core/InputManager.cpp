@@ -1,4 +1,5 @@
 #include "InputManager.h"
+#include "GUIManager.h"
 
 // Definizione del puntatore statico
 InputManager* InputManager::instance = nullptr;
@@ -167,9 +168,15 @@ void InputManager::update3D() {
 }
 
 void InputManager::autoscroll() {
-    zoom *= 0.995f;
-    
-    if (zoom < 10e-7) glfwSetWindowShouldClose(instance->window, GL_TRUE);
+    bool wants_double = false;
+    if (wants_double) {
+        zoom *= 0.95f;
+        if (zoom < 10e-12) glfwSetWindowShouldClose(instance->window, GL_TRUE);
+    }
+    else {
+        zoom *= 0.995f;
+        if (zoom < 10e-7) glfwSetWindowShouldClose(instance->window, GL_TRUE);
+    }
 }
 
 void InputManager::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {

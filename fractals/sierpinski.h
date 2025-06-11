@@ -33,15 +33,15 @@ public:
     }
 
     void reset_param() override {
-        center = glm::vec2(0.33f, 0.33f);
-        zoom = 1.5f;
+        center = glm::vec2(1.47487e-07, 0.9823);;
+        zoom = 2.4f;
         InputManager::getInstance()->setZoom2D(zoom);
         animationStartTime = ImGui::GetTime();
     }
 
 private:
     Shader shader;
-    glm::vec2 center = glm::vec2(-0.5f, 0.25f);
-    float zoom = 1.f;
+    glm::vec2 center = glm::vec2(1.47487e-07, 0.9823);
+    float zoom = 2.4f;
     float animationStartTime;  // Tempo di inizio animazione
 };
