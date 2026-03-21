@@ -2,6 +2,8 @@
 
 A 3D/2D rendering engine written in C++ based on OpenGL. This project allows you to visualize, calculate, and explore complex fractals in real-time, offering an interactive experience in both two-dimensional and navigable three-dimensional environments.
 
+![mandelbulb in real-time](docs/img/mandelbulb.png)
+
 ## Main Features
 
 The engine supports a vast library of fractals, divided into two main categories:
